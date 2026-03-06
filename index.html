@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDFAnalizer — Analizador de PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --crimson:    #E8372A;
+    --scarlet:    #F05545;
+    --vermilion:  #FF6B5B;
+    --coral:      #FF8C7A;
+    --blush:      #FFD6D0;
+    --rose:       #D94035;
+    --wine:       #FFF0EE;
+    --noir:       #FFF8F7;
+    --bone:       #3D1A18;
+    --ash:        #8C5550;
+    --gold:       #C0392B;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--noir);
+    color: var(--bone);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ─── NOISE TEXTURE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none; z-index: 9999;
+    opacity: .5;
+  }
+
+  /* ─── GEOMETRIC BG ─── */
+  .bg-geo {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .bg-geo span {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: .18;
+  }
+  .bg-geo span:nth-child(1) { width: 600px; height: 600px; background: var(--crimson); top: -200px; left: -100px; }
+  .bg-geo span:nth-child(2) { width: 400px; height: 400px; background: var(--scarlet); bottom: -100px; right: -80px; }
+  .bg-geo span:nth-child(3) { width: 300px; height: 300px; background: var(--vermilion); top: 40%; left: 60%; }
+
+  /* ─── PAGES / SCREENS ─── */
+  .screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,248,247,.85);
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 900; letter-spacing: .12em;
+    color: var(--bone);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: .7rem;
+  }
+  .logo-dot { width: 10px; height: 10px; background: var(--vermilion); border-radius: 50%; display: inline-block; }
+  .nav-btn {
+    background: none; border: 1px solid rgba(61,26,24,.2);
+    color: var(--bone); cursor: pointer; padding: .55rem 1.3rem;
+    font-family: 'Instrument Sans', sans-serif; font-size: .82rem;
+    letter-spacing: .08em; text-transform: uppercase;
+    border-radius: 2px; transition: all .25s;
+  }
+  .nav-btn:hover { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+  .nav-btn.primary { background: var(--vermilion); border-color: var(--vermilion); font-weight: 600; color: #fff; }
+  .nav-btn.primary:hover { background: var(--scarlet); border-color: var(--scarlet); }
+
+  /* ─── AUTH SCREEN ─── */
+  #screen-auth {
+    align-items: center; justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #FFF8F7 0%, #FFE4E0 100%);
+  }
+
+  .auth-wrapper {
+    width: 100%; max-width: 460px;
+    animation: slideUp .6s ease both;
+  }
+
+  .auth-header { text-align: center; margin-bottom: 2.5rem; }
+  .auth-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem; font-weight: 900;
+    letter-spacing: .15em; text-transform: uppercase;
+    background: linear-gradient(135deg, var(--crimson) 0%, var(--coral) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block; margin-bottom: .5rem;
+  }
+  .auth-tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: .75rem; color: var(--ash); letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .auth-card {
+    background: rgba(255,255,255,.85);
+    border: 1px solid rgba(232,55,42,.15);
+    border-radius: 6px;
+    padding: 2.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(200,60,50,.15);
+  }
+
+  .tab-row {
+    display: flex; gap: 0; margin-bottom: 2rem;
+    border: 1px solid rgba(232,55,42,.2); border-radius: 4px;
+    overflow: hidden;
+  }
+  .tab {
+    flex: 1; padding: .7rem;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: .82rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ash); transition: all .2s;
+  }
+  .tab.active { background: var(--crimson); color: var(--bone); font-weight: 600; }
+
+  .form-group { margin-bottom: 1.3rem; }
+  .form-label {
+    display: block; font-size: .75rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ash);
+    font-family: 'DM Mono', monospace; margin-bottom: .5rem;
+  }
+  .form-input {
+    width: 100%; padding: .85rem 1rem;
+    background: rgba(255,255,255,.9);
+    border: 1px solid rgba(232,55,42,.2);
+    border-radius: 3px; color: var(--bone);
+    font-family: 'Instrument Sans', sans-serif; font-size: .95rem;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--vermilion); box-shadow: 0 0 0 3px rgba(255,107,91,.2); }
+  .form-input::placeholder { color: var(--ash); opacity: .6; }
+
+  .btn-main {
+    width: 100%; padding: 1rem;
+    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
+    border: none; border-radius: 3px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: .9rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--bone);
+    transition: all .25s; margin-top: .5rem;
+    box-shadow: 0 8px 24px rgba(139,0,0,.4);
+  }
+  .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.5); }
+  .btn-main:active { transform: translateY(0); }
+
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem 0; color: var(--ash); font-size: .8rem;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: rgba(100,30,20,.12);
+  }
+
+  .btn-guest {
+    width: 100%; padding: .85rem;
+    background: transparent;
+    border: 1px solid rgba(232,55,42,.25); border-radius: 3px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif; font-size: .85rem;
+    color: var(--ash); letter-spacing: .06em;
+    transition: all .2s;
+  }
+  .btn-guest:hover { border-color: var(--crimson); color: var(--crimson); background: rgba(232,55,42,.05); }
+
+  .auth-error {
+    background: rgba(232,55,42,.08); border: 1px solid rgba(232,55,42,.3);
+    border-radius: 3px; padding: .7rem 1rem;
+    font-size: .82rem; color: var(--crimson);
+    margin-bottom: 1rem; display: none;
+  }
+
+  /* ─── UPLOAD SCREEN ─── */
+  #screen-upload { padding: 0; }
+
+  .upload-container {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 3rem; max-width: 900px; margin: 0 auto; width: 100%;
+    animation: slideUp .5s ease both;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; font-weight: 700;
+    margin-bottom: .5rem;
+  }
+  .page-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem; color: var(--ash); letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 3rem;
+  }
+
+  .drop-zone {
+    border: 2px dashed rgba(232,55,42,.35);
+    border-radius: 8px;
+    padding: 5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .3s;
+    background: rgba(255,107,91,.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at center, rgba(232,55,42,.07) 0%, transparent 70%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--vermilion);
+    background: rgba(232,55,42,.07);
+  }
+  .drop-zone:hover::before, .drop-zone.drag-over::before { opacity: 1; }
+
+  .drop-icon {
+    width: 72px; height: 72px; margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; box-shadow: 0 12px 32px rgba(139,0,0,.4);
+  }
+  .drop-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; margin-bottom: .6rem;
+  }
+  .drop-sub { font-size: .88rem; color: var(--ash); margin-bottom: 1.5rem; }
+  .drop-btn {
+    display: inline-block; padding: .7rem 2rem;
+    background: var(--crimson); border-radius: 3px;
+    font-size: .85rem; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase;
+    cursor: pointer; transition: background .2s;
+  }
+  .drop-btn:hover { background: var(--scarlet); }
+  .drop-note {
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem; color: var(--ash);
+    letter-spacing: .08em; margin-top: 1rem; text-transform: uppercase;
+  }
+
+  #file-input { display: none; }
+
+  .file-queue {
+    margin-top: 2rem;
+    display: flex; flex-direction: column; gap: .8rem;
+  }
+  .file-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: rgba(255,255,255,.8);
+    border: 1px solid rgba(232,55,42,.15);
+    border-radius: 4px; padding: 1rem 1.2rem;
+    animation: slideUp .3s ease both;
+  }
+  .file-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .file-info { flex: 1; }
+  .file-name { font-size: .9rem; font-weight: 500; margin-bottom: .2rem; word-break: break-all; }
+  .file-meta { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--ash); }
+  .file-status {
+    font-family: 'DM Mono', monospace; font-size: .7rem;
+    padding: .3rem .7rem; border-radius: 2px;
+    background: rgba(232,55,42,.1); color: var(--crimson);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .file-remove {
+    background: none; border: none; cursor: pointer;
+    color: var(--ash); font-size: 1.1rem; padding: .2rem .5rem;
+    transition: color .2s; flex-shrink: 0;
+  }
+  .file-remove:hover { color: var(--vermilion); }
+
+  .analyze-bar {
+    margin-top: 2rem; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  }
+  .file-count { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--ash); }
+  .btn-analyze {
+    padding: .9rem 2.5rem;
+    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
+    border: none; border-radius: 3px; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: .9rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--bone);
+    transition: all .25s;
+    box-shadow: 0 8px 24px rgba(139,0,0,.4);
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.5); }
+  .btn-analyze:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin-top: 1.5rem; display: none;
+  }
+  .progress-label { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--ash); margin-bottom: .5rem; }
+  .progress-bar { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--crimson), var(--vermilion), var(--coral));
+    border-radius: 2px; width: 0%;
+    transition: width .3s ease;
+    box-shadow: 0 0 10px rgba(231,76,60,.6);
+  }
+
+  /* ─── RESULTS SCREEN ─── */
+  #screen-results { padding: 0; }
+
+  .results-container {
+    flex: 1; padding: 3rem; max-width: 1100px; margin: 0 auto; width: 100%;
+    animation: slideUp .5s ease both;
+  }
+
+  .results-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .results-back {
+    background: none; border: 1px solid rgba(61,26,24,.2);
+    color: var(--ash); cursor: pointer; padding: .5rem 1.2rem;
+    font-family: 'Instrument Sans', sans-serif; font-size: .8rem;
+    letter-spacing: .08em; text-transform: uppercase;
+    border-radius: 2px; transition: all .2s;
+  }
+  .results-back:hover { border-color: var(--crimson); color: var(--crimson); }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .result-card {
+    background: rgba(255,255,255,.9);
+    border: 1px solid rgba(232,55,42,.12);
+    border-radius: 6px; overflow: hidden;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    animation: cardIn .5s ease both;
+    box-shadow: 0 4px 16px rgba(200,60,50,.07);
+  }
+  .result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px rgba(200,60,50,.15);
+    border-color: rgba(232,55,42,.3);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, rgba(139,0,0,.5), rgba(192,57,43,.3));
+    padding: 1.2rem 1.5rem;
+    display: flex; align-items: center; gap: .8rem;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .card-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .card-filename {
+    font-size: .9rem; font-weight: 600;
+    word-break: break-all; flex: 1;
+  }
+  .card-badge {
+    font-family: 'DM Mono', monospace; font-size: .65rem;
+    padding: .25rem .6rem; background: var(--vermilion); border-radius: 2px;
+    text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0;
+  }
+
+  .card-body { padding: 1.5rem; }
+
+  .data-row {
+    display: flex; align-items: center;
+    padding: .9rem 0;
+    border-bottom: 1px solid rgba(232,55,42,.07);
+  }
+  .data-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .data-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(232,55,42,.1); display: flex; align-items: center;
+    justify-content: center; font-size: 1rem; flex-shrink: 0; margin-right: 1rem;
+  }
+  .data-label {
+    font-family: 'DM Mono', monospace; font-size: .68rem;
+    color: var(--ash); text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: .15rem;
+  }
+  .data-value { font-size: .95rem; font-weight: 500; color: var(--bone); }
+  .data-value.highlight { color: var(--crimson); font-family: 'DM Mono', monospace; }
+
+  .color-swatch {
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .swatch-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .swatch-dot.rgb  { background: linear-gradient(135deg, #E74C3C, #3498DB, #2ECC71); }
+  .swatch-dot.cmyk { background: linear-gradient(135deg, #00B4D8, #FF0054, #F9C74F, #212529); }
+
+  /* loading card state */
+  .card-loading { position: relative; overflow: hidden; }
+  .card-loading::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.03) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  .empty-state {
+    text-align: center; padding: 4rem 2rem; color: var(--ash);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: .4; }
+  .empty-msg { font-family: 'DM Mono', monospace; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+
+  /* ─── SUMMARY BAR ─── */
+  .summary-bar {
+    display: flex; gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
+  }
+  .summary-pill {
+    background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.18);
+    border-radius: 50px; padding: .5rem 1.2rem;
+    font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--crimson);
+    letter-spacing: .06em;
+  }
+  .summary-pill span { color: var(--ash); margin-right: .4rem; }
+
+  /* ─── USER BADGE ─── */
+  .user-badge {
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700;
+  }
+  .user-name { font-size: .85rem; color: rgba(255,255,255,.7); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .guest-badge {
+    font-family: 'DM Mono', monospace; font-size: .68rem;
+    padding: .3rem .8rem; background: rgba(232,55,42,.1);
+    border: 1px solid rgba(232,55,42,.25); border-radius: 50px;
+    color: var(--crimson); letter-spacing: .06em; text-transform: uppercase;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: #fff; border: 1px solid rgba(232,55,42,.3);
+    border-radius: 4px; padding: 1rem 1.5rem;
+    font-size: .85rem; color: var(--bone);
+    transform: translateY(100px); opacity: 0;
+    transition: all .3s; z-index: 10000;
+    max-width: 300px;
+    box-shadow: 0 8px 24px rgba(200,60,50,.15);
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Multi-file upload progress items */
+  .file-progress {
+    margin-top: .3rem; display: none;
+  }
+  .file-progress-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; overflow: hidden; }
+  .file-progress-fill {
+    height: 100%; background: var(--vermilion); width: 0%;
+    transition: width .3s ease;
+  }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 1rem 1.5rem; }
+    .upload-container, .results-container { padding: 1.5rem; }
+    .auth-card { padding: 1.5rem; }
+    .drop-zone { padding: 3rem 1.5rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-geo">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════ AUTH SCREEN ══════════════════════════════════════ -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-wrapper">
+    <div class="auth-header">
+      <span class="auth-logo">PDFAnalizer</span>
+      <p class="auth-tagline">Análisis Forense de Documentos PDF</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="tab-row">
+        <button class="tab active" onclick="switchTab('login')">Ingresar</button>
+        <button class="tab" onclick="switchTab('register')">Crear cuenta</button>
+      </div>
+
+      <div id="auth-error" class="auth-error"></div>
+
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input class="form-input" type="email" id="login-email" placeholder="usuario@ejemplo.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn-main" onclick="handleLogin()">Ingresar →</button>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Nombre completo</label>
+          <input class="form-input" type="text" id="reg-name" placeholder="Tu nombre" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input class="form-input" type="email" id="reg-email" placeholder="usuario@ejemplo.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar contraseña</label>
+          <input class="form-input" type="password" id="reg-pass2" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="btn-main" onclick="handleRegister()">Crear cuenta →</button>
+      </div>
+
+      <div class="divider">o continúa como</div>
+      <button class="btn-guest" onclick="loginAsGuest()">👤 Modo Invitado — sin registro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ UPLOAD SCREEN ══════════════════════════════════════ -->
+<div id="screen-upload" class="screen">
+  <div class="topbar">
+    <div class="logo"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="user-badge">
+      <div id="topbar-user-info"></div>
+      <button class="nav-btn" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="upload-container">
+    <h1 class="page-title">Subir Documentos</h1>
+    <p class="page-sub">Arrastra o selecciona archivos PDF para analizar</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-icon">📄</div>
+      <h2 class="drop-title">Arrastra tus PDFs aquí</h2>
+      <p class="drop-sub">o haz clic para seleccionarlos desde tu dispositivo</p>
+      <span class="drop-btn">Seleccionar archivos</span>
+      <p class="drop-note">Solo archivos PDF · Sin límite de tamaño</p>
+    </div>
+    <input type="file" id="file-input" accept=".pdf" multiple>
+
+    <div class="file-queue" id="file-queue"></div>
+
+    <div class="analyze-bar">
+      <span class="file-count" id="file-count">0 archivos seleccionados</span>
+      <button class="btn-analyze" id="btn-analyze" onclick="analyzeFiles()" disabled>
+        <span>⚡</span> Analizar PDFs
+      </button>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <p class="progress-label" id="progress-label">Procesando...</p>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ RESULTS SCREEN ══════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="topbar">
+    <div class="logo"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="user-badge">
+      <div id="results-user-info"></div>
+      <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
+      <button class="nav-btn" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="results-container">
+    <div class="results-header">
+      <div>
+        <h1 class="page-title">Resultados del Análisis</h1>
+        <p class="page-sub" id="results-sub">Información extraída de tus documentos</p>
+      </div>
+    </div>
+
+    <div class="summary-bar" id="summary-bar"></div>
+    <div class="cards-grid" id="cards-grid"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════ STATE ══════════════════════ */
+let currentUser = null; // {name, email, isGuest}
+let selectedFiles = []; // File[]
+let analysisResults = []; // [{name, size, ...}]
+const users = JSON.parse(localStorage.getItem('verm_users') || '{}');
+
+/* ══════════════════════ UTILS ══════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function saveUsers() {
+  localStorage.setItem('verm_users', JSON.stringify(users));
+}
+
+function setUserBadge(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (currentUser.isGuest) {
+    el.innerHTML = '<span class="guest-badge">Modo Invitado</span>';
+  } else {
+    const initials = currentUser.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    el.innerHTML = `<div class="user-badge"><div class="user-avatar">${initials}</div><span class="user-name">${currentUser.name.split(' ')[0]}</span></div>`;
+  }
+}
+
+/* ══════════════════════ AUTH ══════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('form-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  clearError();
+}
+
+function showError(msg) {
+  const e = document.getElementById('auth-error');
+  e.textContent = msg; e.style.display = 'block';
+}
+function clearError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  clearError();
+  if (!email || !pass) return showError('Completa todos los campos.');
+  if (!users[email]) return showError('No existe una cuenta con ese correo.');
+  if (users[email].pass !== btoa(pass)) return showError('Contraseña incorrecta.');
+  currentUser = { name: users[email].name, email, isGuest: false };
+  afterLogin();
+}
+
+function handleRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  clearError();
+  if (!name || !email || !pass || !pass2) return showError('Completa todos los campos.');
+  if (!/\S+@\S+\.\S+/.test(email)) return showError('Correo electrónico inválido.');
+  if (pass.length < 6) return showError('La contraseña debe tener al menos 6 caracteres.');
+  if (pass !== pass2) return showError('Las contraseñas no coinciden.');
+  if (users[email]) return showError('Ya existe una cuenta con ese correo.');
+  users[email] = { name, pass: btoa(pass) };
+  saveUsers();
+  currentUser = { name, email, isGuest: false };
+  toast('¡Cuenta creada exitosamente!');
+  afterLogin();
+}
+
+function loginAsGuest() {
+  currentUser = { name: 'Invitado', email: '', isGuest: true };
+  afterLogin();
+}
+
+function afterLogin() {
+  selectedFiles = [];
+  setUserBadge('topbar-user-info');
+  renderQueue();
+  showScreen('screen-upload');
+}
+
+function logout() {
+  currentUser = null;
+  selectedFiles = [];
+  analysisResults = [];
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
+  showScreen('screen-auth');
+}
+
+/* ══════════════════════ FILE HANDLING ══════════════════════ */
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  addFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
+
+function addFiles(files) {
+  const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.endsWith('.pdf'));
+  if (!pdfs.length) { toast('Solo se aceptan archivos PDF.'); return; }
+  pdfs.forEach(f => {
+    if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+      selectedFiles.push(f);
+    }
+  });
+  renderQueue();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderQueue();
+}
+
+function renderQueue() {
+  const q = document.getElementById('file-queue');
+  const cnt = document.getElementById('file-count');
+  const btn = document.getElementById('btn-analyze');
+  q.innerHTML = '';
+  cnt.textContent = selectedFiles.length === 0
+    ? '0 archivos seleccionados'
+    : `${selectedFiles.length} archivo${selectedFiles.length > 1 ? 's' : ''} listo${selectedFiles.length > 1 ? 's' : ''}`;
+  btn.disabled = selectedFiles.length === 0;
+
+  selectedFiles.forEach((f, i) => {
+    const kb = (f.size / 1024).toFixed(1);
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${kb} KB</div>
+      </div>
+      <span class="file-status">Listo</span>
+      <button class="file-remove" onclick="removeFile(${i})" title="Eliminar">✕</button>
+    `;
+    q.appendChild(item);
+  });
+}
+
+/* ══════════════════════ PDF ANALYSIS ══════════════════════ */
+async function analyzeFiles() {
+  if (!selectedFiles.length) return;
+  const btn = document.getElementById('btn-analyze');
+  const pw  = document.getElementById('progress-wrap');
+  const pf  = document.getElementById('progress-fill');
+  const pl  = document.getElementById('progress-label');
+
+  btn.disabled = true;
+  pw.style.display = 'block';
+  analysisResults = [];
+
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const f = selectedFiles[i];
+    const pct = Math.round(((i) / selectedFiles.length) * 100);
+    pf.style.width = pct + '%';
+    pl.textContent = `Analizando ${i+1}/${selectedFiles.length}: ${f.name}`;
+    await sleep(200);
+    try {
+      const result = await analyzePDF(f);
+      analysisResults.push(result);
+    } catch(e) {
+      analysisResults.push({ name: f.name, size: f.size, error: true });
+    }
+  }
+
+  pf.style.width = '100%';
+  pl.textContent = '¡Análisis completo!';
+  await sleep(500);
+
+  showResults();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function analyzePDF(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const bytes = new Uint8Array(e.target.result);
+        const result = parsePDFMetadata(bytes, file);
+        resolve(result);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Read error'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parsePDFMetadata(bytes, file) {
+  const text = new TextDecoder('latin1').decode(bytes);
+
+  // ── File size ──
+  const sizeKB = (file.size / 1024).toFixed(2);
+
+  // ── Creator / Software ──
+  let software = 'Desconocido';
+  const creatorMatch = text.match(/\/Creator\s*\(([^)]+)\)/);
+  const producerMatch = text.match(/\/Producer\s*\(([^)]+)\)/);
+  if (creatorMatch) software = cleanPDFString(creatorMatch[1]);
+  else if (producerMatch) software = cleanPDFString(producerMatch[1]);
+
+  // ── Color Profile ──
+  let colorProfile = 'RGB';
+  if (/\/DeviceCMYK|\/ICCBased.*CMYK|Separation|DeviceN/i.test(text)) colorProfile = 'CMYK';
+  else if (/\/DeviceRGB|\/ICCBased.*RGB|\/sRGB/i.test(text)) colorProfile = 'RGB';
+
+  // ── Page dimensions (MediaBox) ──
+  let width_cm = null, height_cm = null;
+  // Try to find MediaBox — [0 0 W H] in pts
+  const mediaBoxMatch = text.match(/\/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]/);
+  if (mediaBoxMatch) {
+    const pts_w = parseFloat(mediaBoxMatch[3]) - parseFloat(mediaBoxMatch[1]);
+    const pts_h = parseFloat(mediaBoxMatch[4]) - parseFloat(mediaBoxMatch[2]);
+    width_cm  = (pts_w / 72 * 2.54).toFixed(2);
+    height_cm = (pts_h / 72 * 2.54).toFixed(2);
+  }
+
+  // ── Page count ──
+  let pages = '—';
+  const pagesMatch = text.match(/\/N\s+(\d+)|\/Count\s+(\d+)/);
+  if (pagesMatch) pages = parseInt(pagesMatch[1] || pagesMatch[2]);
+
+  // ── PDF Version ──
+  let version = '—';
+  const verMatch = text.match(/%PDF-(\d+\.\d+)/);
+  if (verMatch) version = verMatch[1];
+
+  // ── Creation date ──
+  let created = '—';
+  const dateMatch = text.match(/\/CreationDate\s*\(D:(\d{4})(\d{2})(\d{2})/);
+  if (dateMatch) created = `${dateMatch[3]}/${dateMatch[2]}/${dateMatch[1]}`;
+
+  return {
+    name: file.name,
+    size: sizeKB,
+    software,
+    colorProfile,
+    width_cm,
+    height_cm,
+    pages,
+    version,
+    created,
+    error: false
+  };
+}
+
+function cleanPDFString(s) {
+  // Remove PDF escape sequences and non-printable chars
+  return s.replace(/\\(\d{3})/g, (m,p) => String.fromCharCode(parseInt(p,8)))
+          .replace(/[^\x20-\x7E]/g, '')
+          .trim()
+          .slice(0, 80) || 'Desconocido';
+}
+
+/* ══════════════════════ RESULTS ══════════════════════ */
+function goToUpload() {
+  selectedFiles = [];
+  renderQueue();
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('btn-analyze').disabled = true;
+  setUserBadge('topbar-user-info');
+  showScreen('screen-upload');
+}
+
+function showResults() {
+  setUserBadge('results-user-info');
+
+  const grid = document.getElementById('cards-grid');
+  const sub  = document.getElementById('results-sub');
+  const sum  = document.getElementById('summary-bar');
+
+  const n = analysisResults.length;
+  sub.textContent = `${n} documento${n!==1?'s':''} analizados`;
+
+  // Summary pills
+  const totalKB = analysisResults.reduce((a,r) => a + parseFloat(r.size||0), 0).toFixed(1);
+  const cmyk = analysisResults.filter(r => r.colorProfile === 'CMYK').length;
+  const rgb  = analysisResults.filter(r => r.colorProfile === 'RGB').length;
+  sum.innerHTML = `
+    <div class="summary-pill"><span>Total archivos:</span>${n}</div>
+    <div class="summary-pill"><span>Peso acumulado:</span>${totalKB} KB</div>
+    <div class="summary-pill"><span>RGB:</span>${rgb}</div>
+    <div class="summary-pill"><span>CMYK:</span>${cmyk}</div>
+  `;
+
+  grid.innerHTML = '';
+  analysisResults.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.animationDelay = (i * 0.08) + 's';
+
+    if (r.error) {
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-icon">⚠️</div>
+          <div class="card-filename">${r.name}</div>
+        </div>
+        <div class="card-body">
+          <div class="data-row">
+            <div class="data-icon">❌</div>
+            <div><div class="data-label">Estado</div><div class="data-value" style="color:var(--coral)">Error al leer el archivo</div></div>
+          </div>
+        </div>`;
+    } else {
+      const dimStr = r.width_cm && r.height_cm
+        ? `${r.width_cm} × ${r.height_cm} cm`
+        : 'No disponible';
+      const cpIcon = r.colorProfile === 'CMYK' ? '🖨️' : '🖥️';
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-icon">📄</div>
+          <div class="card-filename">${r.name}</div>
+          <span class="card-badge">PDF ${r.version}</span>
+        </div>
+        <div class="card-body">
+          <div class="data-row">
+            <div class="data-icon">📐</div>
+            <div>
+              <div class="data-label">Medida del archivo</div>
+              <div class="data-value highlight">${dimStr}</div>
+            </div>
+          </div>
+          <div class="data-row">
+            <div class="data-icon">⚙️</div>
+            <div>
+              <div class="data-label">Software creador</div>
+              <div class="data-value">${r.software}</div>
+            </div>
+          </div>
+          <div class="data-row">
+            <div class="data-icon">${cpIcon}</div>
+            <div>
+              <div class="data-label">Perfil de color</div>
+              <div class="data-value">
+                <span class="color-swatch">
+                  <span class="swatch-dot ${r.colorProfile.toLowerCase()}"></span>
+                  ${r.colorProfile}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="data-row">
+            <div class="data-icon">💾</div>
+            <div>
+              <div class="data-label">Peso del archivo</div>
+              <div class="data-value highlight">${r.size} KB</div>
+            </div>
+          </div>
+          <div class="data-row">
+            <div class="data-icon">📑</div>
+            <div>
+              <div class="data-label">Páginas / Fecha creación</div>
+              <div class="data-value">${r.pages} ${r.pages !== '—' ? 'pág.' : ''} &nbsp;·&nbsp; ${r.created}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    grid.appendChild(card);
+  });
+
+  showScreen('screen-results');
+}
+
+/* ── Allow Enter key on auth inputs ── */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = document.querySelector('.screen.active');
+  if (!active || active.id !== 'screen-auth') return;
+  const loginVisible = document.getElementById('form-login').style.display !== 'none';
+  loginVisible ? handleLogin() : handleRegister();
+});
+</script>
+</body>
+</html>
