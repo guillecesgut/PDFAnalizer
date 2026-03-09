@@ -272,7 +272,43 @@
   .htd-action { background: none; border: none; cursor: pointer; color: var(--ash); font-size: .85rem; padding: .3rem .6rem; border-radius: 2px; transition: all .2s; }
   .htd-action:hover { background: rgba(232,55,42,.1); color: var(--crimson); }
 
-  /* ─── MISC ─── */
+  /* ─── TEMPLATES SCREEN ─── */
+  .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 1.2rem; margin-top: 1.5rem; }
+  .tpl-card { background: #fff; border: 1px solid rgba(232,55,42,.12); border-radius: 6px; overflow: hidden; box-shadow: 0 4px 16px rgba(200,60,50,.06); transition: transform .2s, box-shadow .2s; }
+  .tpl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(200,60,50,.12); }
+  .tpl-card-header { background: linear-gradient(135deg, rgba(232,55,42,.1), rgba(255,107,91,.06)); padding: 1rem 1.2rem; border-bottom: 1px solid rgba(232,55,42,.08); display: flex; align-items: center; justify-content: space-between; }
+  .tpl-card-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; }
+  .tpl-card-body { padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
+  .tpl-spec { display: flex; align-items: center; gap: .6rem; font-size: .82rem; }
+  .tpl-spec-icon { font-size: .95rem; }
+  .tpl-spec-label { color: var(--ash); font-family: 'DM Mono', monospace; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; width: 90px; flex-shrink: 0; }
+  .tpl-spec-val { font-weight: 500; color: var(--bone); }
+  .tpl-actions { padding: .8rem 1.2rem; border-top: 1px solid rgba(232,55,42,.07); display: flex; gap: .6rem; justify-content: flex-end; }
+  .tpl-btn { padding: .4rem .9rem; border-radius: 2px; border: 1px solid rgba(232,55,42,.25); background: none; cursor: pointer; font-size: .75rem; font-family: 'Instrument Sans', sans-serif; color: var(--ash); transition: all .2s; }
+  .tpl-btn:hover { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+  .tpl-btn.danger:hover { background: #c0392b; border-color: #c0392b; }
+
+  /* ─── NEW TEMPLATE FORM ─── */
+  .tpl-form-wrap { background: #fff; border: 1px solid rgba(232,55,42,.15); border-radius: 6px; padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 4px 16px rgba(200,60,50,.06); display: none; }
+  .tpl-form-wrap.open { display: block; animation: slideUp .3s ease both; }
+  .tpl-form-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.2rem; }
+  .tpl-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .tpl-form-actions { display: flex; gap: .8rem; margin-top: 1.2rem; justify-content: flex-end; }
+
+  /* ─── VERDICT BADGE on result cards ─── */
+  .verdict-badge { display: flex; align-items: center; gap: .45rem; padding: .5rem 1rem; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin-top: .8rem; }
+  .verdict-badge.approved { background: rgba(39,174,96,.1); border: 1px solid rgba(39,174,96,.25); color: #1e8449; }
+  .verdict-badge.rejected { background: rgba(232,55,42,.1); border: 1px solid rgba(232,55,42,.25); color: var(--crimson); }
+  .verdict-badge.partial  { background: rgba(243,156,18,.1); border: 1px solid rgba(243,156,18,.3); color: #b7770d; }
+  .verdict-badge.no-tpl   { background: rgba(140,85,80,.08); border: 1px solid rgba(140,85,80,.18); color: var(--ash); }
+  .verdict-match-list { margin-top: .6rem; padding: .7rem 1rem; background: rgba(232,55,42,.03); border-radius: 3px; border: 1px solid rgba(232,55,42,.07); }
+  .verdict-match-row { display: flex; justify-content: space-between; align-items: center; font-size: .78rem; padding: .25rem 0; border-bottom: 1px solid rgba(232,55,42,.05); }
+  .verdict-match-row:last-child { border-bottom: none; }
+  .verdict-match-tpl { font-weight: 500; }
+  .verdict-match-pct { font-family: 'DM Mono', monospace; font-size: .72rem; }
+  .verdict-match-pct.full { color: #1e8449; }
+  .verdict-match-pct.part { color: #b7770d; }
+  .verdict-match-pct.none { color: var(--crimson); }
   .guest-badge { font-family: 'DM Mono', monospace; font-size: .68rem; padding: .3rem .8rem; background: rgba(232,55,42,.1); border: 1px solid rgba(232,55,42,.25); border-radius: 50px; color: var(--crimson); letter-spacing: .06em; text-transform: uppercase; }
 
   #toast { position: fixed; bottom: 2rem; right: 2rem; background: #fff; border: 1px solid rgba(232,55,42,.2); border-left: 4px solid var(--crimson); border-radius: 4px; padding: 1rem 1.5rem; font-size: .85rem; color: var(--bone); transform: translateY(120px); opacity: 0; transition: all .3s; z-index: 10000; max-width: 300px; box-shadow: 0 8px 24px rgba(200,60,50,.15); }
@@ -403,10 +439,75 @@
         <h1 class="page-title">Resultados del Análisis</h1>
         <p class="page-sub" id="results-sub">Información extraída de tus documentos</p>
       </div>
-      <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap">
+        <button class="nav-btn" onclick="window._goToTemplates()">📐 Plantillas</button>
+        <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
+      </div>
     </div>
     <div class="summary-bar" id="summary-bar"></div>
     <div class="cards-grid" id="cards-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TEMPLATES ══════════════════════ -->
+<div id="screen-templates" class="screen">
+  <div class="topbar">
+    <div class="logo" onclick="goToUpload()"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="topbar-nav" id="templates-topnav"></div>
+  </div>
+  <div class="page-container" style="max-width:1000px">
+    <div class="results-header">
+      <div>
+        <h1 class="page-title">Plantillas Estándar</h1>
+        <p class="page-sub">Define los estándares con los que se compararán tus PDFs</p>
+      </div>
+      <button class="nav-btn primary" onclick="window._openTplForm()">+ Nueva plantilla</button>
+    </div>
+
+    <!-- Form nueva plantilla -->
+    <div class="tpl-form-wrap" id="tpl-form-wrap">
+      <p class="tpl-form-title" id="tpl-form-title">Nueva plantilla</p>
+      <input type="hidden" id="tpl-edit-id">
+      <div class="tpl-form-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre de la plantilla</label>
+          <input class="form-input" type="text" id="tpl-name" placeholder="Ej: Afiche A4, Banner Web...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Perfil de color</label>
+          <select class="form-input" id="tpl-color">
+            <option value="RGB">RGB</option>
+            <option value="CMYK">CMYK</option>
+            <option value="cualquiera">Cualquiera</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ancho (cm)</label>
+          <input class="form-input" type="number" id="tpl-w" placeholder="Ej: 21.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alto (cm)</label>
+          <input class="form-input" type="number" id="tpl-h" placeholder="Ej: 29.70" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tolerancia dimensiones (±cm)</label>
+          <input class="form-input" type="number" id="tpl-tol" value="0.5" step="0.1" min="0">
+        </div>
+      </div>
+      <div class="tpl-form-actions">
+        <button class="tpl-btn" onclick="window._closeTplForm()">Cancelar</button>
+        <button class="btn-save" onclick="window._saveTpl()">Guardar plantilla</button>
+      </div>
+    </div>
+
+    <!-- Lista de plantillas -->
+    <div id="tpl-empty" style="display:none">
+      <div class="history-empty">
+        <div class="history-empty-icon">📐</div>
+        <p class="history-empty-msg">Aún no tienes plantillas — crea la primera arriba</p>
+      </div>
+    </div>
+    <div class="tpl-grid" id="tpl-grid"></div>
   </div>
 </div>
 
@@ -505,6 +606,7 @@ function renderTopbar(id){
   } else {
     el.innerHTML=`
       <div class="topbar-user">
+        <button class="nav-btn" style="font-size:.78rem" onclick="window._goToTemplates()">📐 Plantillas</button>
         <span class="topbar-name">${currentUser.name.split(' ')[0]}</span>
         <div class="user-avatar-btn" title="Mi perfil" onclick="window._goToProfile()">${initials(currentUser.name)}</div>
       </div>
@@ -691,6 +793,19 @@ async function analyzeFiles(){
   pf.style.width='100%'; pl.textContent='¡Análisis completo!';
   await new Promise(r=>setTimeout(r,500));
 
+  // ── Comparar contra plantillas (usuarios registrados) ──
+  let templates = [];
+  if(currentUser && !currentUser.isGuest){
+    try { templates = await loadTemplates(); } catch(e){}
+  }
+  analysisResults.forEach(r => {
+    if(r.error) return;
+    const cmp = compareWithTemplates(r, templates);
+    r._verdict   = cmp.verdict;
+    r._matches   = cmp.matches;
+    r._bestMatch = cmp.best ? cmp.best.name : '';
+  });
+
   // ── Guardar en Firestore para usuarios registrados ──
   if(currentUser && !currentUser.isGuest){
     const colRef = collection(fdb,'users',currentUser.uid,'docs');
@@ -701,6 +816,7 @@ async function analyzeFiles(){
         colorProfile:r.colorProfile, width_cm:r.width_cm||null,
         height_cm:r.height_cm||null, pages:r.pages||null,
         version:r.version||null, created:r.created||null,
+        verdict: r._verdict||null, bestMatch: r._bestMatch||null,
         analyzedAt: serverTimestamp()
       });
     }
@@ -737,7 +853,140 @@ function parsePDFMetadata(bytes,file){
 
 function cleanStr(s){ return s.replace(/\\(\d{3})/g,(m,p)=>String.fromCharCode(parseInt(p,8))).replace(/[^\x20-\x7E]/g,'').trim().slice(0,80)||'Desconocido'; }
 
-/* ══════ RESULTS ══════ */
+/* ══════ TEMPLATES ══════ */
+async function goToTemplates(){
+  if(!currentUser||currentUser.isGuest){ toast('Las plantillas requieren una cuenta registrada.'); return; }
+  renderTopbar('templates-topnav');
+  showScreen('screen-templates');
+  await renderTemplates();
+}
+window._goToTemplates = goToTemplates;
+
+async function loadTemplates(){
+  if(!currentUser?.uid) return [];
+  const snap = await getDocs(query(collection(fdb,'users',currentUser.uid,'templates'),orderBy('createdAt','asc')));
+  return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+async function renderTemplates(){
+  const grid = document.getElementById('tpl-grid');
+  const empty = document.getElementById('tpl-empty');
+  if(!grid) return;
+  grid.innerHTML = `<div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash);padding:1rem">Cargando…</div>`;
+  const tpls = await loadTemplates();
+  grid.innerHTML = '';
+  if(!tpls.length){ empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tpls.forEach(t => grid.appendChild(buildTplCard(t)));
+}
+
+function buildTplCard(t){
+  const card = document.createElement('div');
+  card.className = 'tpl-card';
+  const dimStr = t.width_cm && t.height_cm ? `${t.width_cm} × ${t.height_cm} cm` : 'No definidas';
+  const tolStr = t.tolerance != null ? `±${t.tolerance} cm` : '±0.5 cm';
+  card.innerHTML = `
+    <div class="tpl-card-header">
+      <span class="tpl-card-name">📐 ${t.name}</span>
+      <span class="htd-badge ${(t.colorProfile||'').toLowerCase()}" style="font-size:.65rem">${t.colorProfile==='cualquiera'?'Cualquier color':t.colorProfile}</span>
+    </div>
+    <div class="tpl-card-body">
+      <div class="tpl-spec"><span class="tpl-spec-icon">📏</span><span class="tpl-spec-label">Dimensiones</span><span class="tpl-spec-val">${dimStr}</span></div>
+      <div class="tpl-spec"><span class="tpl-spec-icon">🎯</span><span class="tpl-spec-label">Tolerancia</span><span class="tpl-spec-val">${tolStr}</span></div>
+      <div class="tpl-spec"><span class="tpl-spec-icon">🎨</span><span class="tpl-spec-label">Color</span><span class="tpl-spec-val">${t.colorProfile==='cualquiera'?'Cualquiera':t.colorProfile}</span></div>
+    </div>
+    <div class="tpl-actions">
+      <button class="tpl-btn" onclick="window._editTpl('${t.id}')">✏️ Editar</button>
+      <button class="tpl-btn danger" onclick="window._deleteTpl('${t.id}')">🗑 Eliminar</button>
+    </div>`;
+  return card;
+}
+
+function openTplForm(){ document.getElementById('tpl-form-wrap').classList.add('open'); document.getElementById('tpl-form-title').textContent='Nueva plantilla'; document.getElementById('tpl-edit-id').value=''; document.getElementById('tpl-name').value=''; document.getElementById('tpl-w').value=''; document.getElementById('tpl-h').value=''; document.getElementById('tpl-tol').value='0.5'; document.getElementById('tpl-color').value='RGB'; }
+window._openTplForm = openTplForm;
+
+function closeTplForm(){ document.getElementById('tpl-form-wrap').classList.remove('open'); }
+window._closeTplForm = closeTplForm;
+
+window._editTpl = async function(id){
+  const tpls = await loadTemplates();
+  const t = tpls.find(x=>x.id===id); if(!t) return;
+  document.getElementById('tpl-form-title').textContent = 'Editar plantilla';
+  document.getElementById('tpl-edit-id').value  = id;
+  document.getElementById('tpl-name').value     = t.name||'';
+  document.getElementById('tpl-w').value        = t.width_cm||'';
+  document.getElementById('tpl-h').value        = t.height_cm||'';
+  document.getElementById('tpl-tol').value      = t.tolerance!=null?t.tolerance:0.5;
+  document.getElementById('tpl-color').value    = t.colorProfile||'RGB';
+  document.getElementById('tpl-form-wrap').classList.add('open');
+  document.getElementById('tpl-form-wrap').scrollIntoView({behavior:'smooth'});
+};
+
+window._saveTpl = async function(){
+  const name  = document.getElementById('tpl-name').value.trim();
+  const w     = parseFloat(document.getElementById('tpl-w').value);
+  const h     = parseFloat(document.getElementById('tpl-h').value);
+  const tol   = parseFloat(document.getElementById('tpl-tol').value)||0.5;
+  const color = document.getElementById('tpl-color').value;
+  const editId= document.getElementById('tpl-edit-id').value;
+  if(!name) return toast('El nombre de la plantilla es obligatorio.');
+  if(isNaN(w)||isNaN(h)||w<=0||h<=0) return toast('Ingresa dimensiones válidas mayores a 0.');
+  const data = { name, width_cm:w, height_cm:h, tolerance:tol, colorProfile:color, createdAt: editId ? undefined : new Date().toISOString() };
+  if(!data.createdAt) delete data.createdAt;
+  if(editId){
+    await setDoc(doc(fdb,'users',currentUser.uid,'templates',editId), data, {merge:true});
+    toast('Plantilla actualizada.','success');
+  } else {
+    data.createdAt = new Date().toISOString();
+    await addDoc(collection(fdb,'users',currentUser.uid,'templates'), data);
+    toast('Plantilla creada.','success');
+  }
+  closeTplForm();
+  await renderTemplates();
+};
+
+window._deleteTpl = async function(id){
+  if(!confirm('¿Eliminar esta plantilla?')) return;
+  await deleteDoc(doc(fdb,'users',currentUser.uid,'templates',id));
+  toast('Plantilla eliminada.');
+  await renderTemplates();
+};
+
+/* ══════ COMPARISON ENGINE ══════ */
+function compareWithTemplates(result, templates){
+  if(!templates||!templates.length) return { verdict:'no-tpl', matches:[] };
+  const matches = templates.map(t => {
+    let score = 0; let total = 0; const details = [];
+    // Dimensiones
+    if(t.width_cm && t.height_cm && result.width_cm && result.height_cm){
+      total += 2;
+      const tol = t.tolerance != null ? parseFloat(t.tolerance) : 0.5;
+      const wOk = Math.abs(parseFloat(result.width_cm) - parseFloat(t.width_cm)) <= tol;
+      const hOk = Math.abs(parseFloat(result.height_cm) - parseFloat(t.height_cm)) <= tol;
+      if(wOk){ score++; details.push({ok:true, msg:`Ancho OK (${result.width_cm}cm)`}); }
+      else { details.push({ok:false, msg:`Ancho fuera (${result.width_cm} vs ${t.width_cm}cm ±${tol})`}); }
+      if(hOk){ score++; details.push({ok:true, msg:`Alto OK (${result.height_cm}cm)`}); }
+      else { details.push({ok:false, msg:`Alto fuera (${result.height_cm} vs ${t.height_cm}cm ±${tol})`}); }
+    }
+    // Color
+    if(t.colorProfile && t.colorProfile !== 'cualquiera'){
+      total++;
+      const cOk = (result.colorProfile||'').toUpperCase() === t.colorProfile.toUpperCase();
+      if(cOk){ score++; details.push({ok:true, msg:`Color OK (${result.colorProfile})`}); }
+      else { details.push({ok:false, msg:`Color incorrecto (${result.colorProfile} vs ${t.colorProfile})`}); }
+    }
+    const pct = total > 0 ? Math.round((score/total)*100) : 100;
+    return { id:t.id, name:t.name, score, total, pct, details, approved: pct===100 };
+  });
+  matches.sort((a,b)=>b.pct-a.pct);
+  const best = matches[0];
+  let verdict = 'rejected';
+  if(best.approved) verdict = 'approved';
+  else if(best.pct >= 50) verdict = 'partial';
+  return { verdict, best, matches };
+}
+
+/* ══════ RESULTS (updated with verdicts) ══════ */
 function showResults(){
   renderTopbar('results-topnav');
   const grid=document.getElementById('cards-grid'),sub=document.getElementById('results-sub'),sum=document.getElementById('summary-bar');
@@ -746,7 +995,13 @@ function showResults(){
   const totalKB=analysisResults.reduce((a,r)=>a+parseFloat(r.size||0),0).toFixed(1);
   const cmyk=analysisResults.filter(r=>r.colorProfile==='CMYK').length;
   const rgb =analysisResults.filter(r=>r.colorProfile==='RGB').length;
-  sum.innerHTML=`<div class="summary-pill"><span>Total:</span>${n}</div><div class="summary-pill"><span>Peso:</span>${totalKB} KB</div><div class="summary-pill"><span>RGB:</span>${rgb}</div><div class="summary-pill"><span>CMYK:</span>${cmyk}</div>`;
+  const approved = analysisResults.filter(r=>r._verdict==='approved').length;
+  const rejected = analysisResults.filter(r=>r._verdict==='rejected').length;
+  let summaryExtra = '';
+  if(analysisResults.some(r=>r._verdict && r._verdict!=='no-tpl')){
+    summaryExtra = `<div class="summary-pill"><span>✅ Aprobados:</span>${approved}</div><div class="summary-pill"><span>❌ Rechazados:</span>${rejected}</div>`;
+  }
+  sum.innerHTML=`<div class="summary-pill"><span>Total:</span>${n}</div><div class="summary-pill"><span>Peso:</span>${totalKB} KB</div><div class="summary-pill"><span>RGB:</span>${rgb}</div><div class="summary-pill"><span>CMYK:</span>${cmyk}</div>${summaryExtra}`;
   grid.innerHTML='';
   analysisResults.forEach((r,i)=>{
     const card=document.createElement('div'); card.className='result-card'; card.style.animationDelay=(i*.08)+'s';
@@ -754,6 +1009,22 @@ function showResults(){
       card.innerHTML=`<div class="card-header"><div class="card-icon">⚠️</div><div class="card-filename">${r.name}</div></div><div class="card-body"><div class="data-row"><div class="data-icon">❌</div><div><div class="data-label">Estado</div><div class="data-value" style="color:var(--crimson)">Error al leer el archivo</div></div></div></div>`;
     } else {
       const dim=r.width_cm&&r.height_cm?`${r.width_cm} × ${r.height_cm} cm`:'No disponible';
+      // Verdict block
+      let verdictHtml = '';
+      if(r._verdict && r._verdict !== 'no-tpl'){
+        const icons = {approved:'✅',rejected:'❌',partial:'⚠️'};
+        const labels = {approved:'Aprobado',rejected:'Rechazado',partial:'Cumplimiento parcial'};
+        const matchRows = (r._matches||[]).slice(0,3).map(m=>`
+          <div class="verdict-match-row">
+            <span class="verdict-match-tpl">📐 ${m.name}</span>
+            <span class="verdict-match-pct ${m.pct===100?'full':m.pct>=50?'part':'none'}">${m.pct}%</span>
+          </div>`).join('');
+        verdictHtml = `
+          <div class="verdict-badge ${r._verdict}">${icons[r._verdict]} ${labels[r._verdict]} — ${r._bestMatch||''}</div>
+          <div class="verdict-match-list">${matchRows}</div>`;
+      } else if(r._verdict==='no-tpl'){
+        verdictHtml = `<div class="verdict-badge no-tpl">📐 Sin plantillas para comparar</div>`;
+      }
       card.innerHTML=`
         <div class="card-header"><div class="card-icon">📄</div><div class="card-filename">${r.name}</div><span class="card-badge">PDF ${r.version}</span></div>
         <div class="card-body">
@@ -762,6 +1033,7 @@ function showResults(){
           <div class="data-row"><div class="data-icon">${r.colorProfile==='CMYK'?'🖨️':'🖥️'}</div><div><div class="data-label">Perfil de color</div><div class="data-value"><span class="color-swatch"><span class="swatch-dot ${r.colorProfile.toLowerCase()}"></span>${r.colorProfile}</span></div></div></div>
           <div class="data-row"><div class="data-icon">💾</div><div><div class="data-label">Peso del archivo</div><div class="data-value highlight">${r.size} KB</div></div></div>
           <div class="data-row"><div class="data-icon">📑</div><div><div class="data-label">Páginas / Fecha creación</div><div class="data-value">${r.pages}${r.pages!=='—'?' pág.':''} · ${r.created}</div></div></div>
+          ${verdictHtml}
         </div>`;
     }
     grid.appendChild(card);
