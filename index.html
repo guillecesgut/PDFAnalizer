@@ -8,21 +8,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --crimson:    #E8372A;
-    --scarlet:    #F05545;
-    --vermilion:  #FF6B5B;
-    --coral:      #FF8C7A;
-    --blush:      #FFD6D0;
-    --rose:       #D94035;
-    --wine:       #FFF0EE;
-    --noir:       #FFF8F7;
-    --bone:       #3D1A18;
-    --ash:        #8C5550;
-    --gold:       #C0392B;
+    --crimson:   #E8372A;
+    --scarlet:   #F05545;
+    --vermilion: #FF6B5B;
+    --coral:     #FF8C7A;
+    --blush:     #FFD6D0;
+    --rose:      #D94035;
+    --wine:      #FFF0EE;
+    --noir:      #FFF8F7;
+    --bone:      #3D1A18;
+    --ash:       #8C5550;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { font-size: 16px; scroll-behavior: smooth; }
 
   body {
@@ -34,532 +32,309 @@
     position: relative;
   }
 
-  /* ─── NOISE TEXTURE OVERLAY ─── */
   body::before {
     content: '';
     position: fixed; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     background-size: 200px 200px;
-    pointer-events: none; z-index: 9999;
-    opacity: .5;
+    pointer-events: none; z-index: 9999; opacity: .5;
   }
 
-  /* ─── GEOMETRIC BG ─── */
-  .bg-geo {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    overflow: hidden;
-  }
-  .bg-geo span {
-    position: absolute; border-radius: 50%;
-    filter: blur(80px); opacity: .18;
-  }
+  .bg-geo { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bg-geo span { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .18; }
   .bg-geo span:nth-child(1) { width: 600px; height: 600px; background: var(--crimson); top: -200px; left: -100px; }
   .bg-geo span:nth-child(2) { width: 400px; height: 400px; background: var(--scarlet); bottom: -100px; right: -80px; }
   .bg-geo span:nth-child(3) { width: 300px; height: 300px; background: var(--vermilion); top: 40%; left: 60%; }
 
-  /* ─── PAGES / SCREENS ─── */
+  /* ─── SCREENS ─── */
   .screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
   .screen.active { display: flex; flex-direction: column; }
 
   /* ─── TOPBAR ─── */
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.5rem 3rem;
-    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: 1.2rem 3rem;
+    border-bottom: 1px solid rgba(232,55,42,.1);
     backdrop-filter: blur(10px);
     position: sticky; top: 0; z-index: 100;
-    background: rgba(255,248,247,.85);
+    background: rgba(255,248,247,.9);
   }
   .logo {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem; font-weight: 900; letter-spacing: .12em;
-    color: var(--bone);
-    text-transform: uppercase;
-    display: flex; align-items: center; gap: .7rem;
+    font-size: 1.35rem; font-weight: 900; letter-spacing: .12em;
+    color: var(--bone); text-transform: uppercase;
+    display: flex; align-items: center; gap: .7rem; cursor: pointer;
   }
-  .logo-dot { width: 10px; height: 10px; background: var(--vermilion); border-radius: 50%; display: inline-block; }
+  .logo-dot { width: 10px; height: 10px; background: var(--vermilion); border-radius: 50%; }
+  .topbar-nav { display: flex; align-items: center; gap: .6rem; }
   .nav-btn {
     background: none; border: 1px solid rgba(61,26,24,.2);
-    color: var(--bone); cursor: pointer; padding: .55rem 1.3rem;
-    font-family: 'Instrument Sans', sans-serif; font-size: .82rem;
+    color: var(--bone); cursor: pointer; padding: .5rem 1.2rem;
+    font-family: 'Instrument Sans', sans-serif; font-size: .8rem;
     letter-spacing: .08em; text-transform: uppercase;
     border-radius: 2px; transition: all .25s;
   }
   .nav-btn:hover { background: var(--crimson); border-color: var(--crimson); color: #fff; }
-  .nav-btn.primary { background: var(--vermilion); border-color: var(--vermilion); font-weight: 600; color: #fff; }
-  .nav-btn.primary:hover { background: var(--scarlet); border-color: var(--scarlet); }
 
-  /* ─── AUTH SCREEN ─── */
+  .user-avatar-btn {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
+    display: flex; align-items: center; justify-content: center;
+    font-size: .82rem; font-weight: 700; color: #fff;
+    cursor: pointer; border: 2px solid transparent;
+    transition: border-color .2s, transform .2s; flex-shrink: 0;
+  }
+  .user-avatar-btn:hover { border-color: var(--crimson); transform: scale(1.08); }
+  .topbar-user { display: flex; align-items: center; gap: .7rem; }
+  .topbar-name { font-size: .85rem; color: var(--ash); }
+
+  /* ─── AUTH ─── */
   #screen-auth {
     align-items: center; justify-content: center;
     padding: 2rem;
     background: linear-gradient(135deg, #FFF8F7 0%, #FFE4E0 100%);
   }
-
-  .auth-wrapper {
-    width: 100%; max-width: 460px;
-    animation: slideUp .6s ease both;
-  }
-
+  .auth-wrapper { width: 100%; max-width: 460px; animation: slideUp .6s ease both; }
   .auth-header { text-align: center; margin-bottom: 2.5rem; }
   .auth-logo {
     font-family: 'Playfair Display', serif;
-    font-size: 2.8rem; font-weight: 900;
-    letter-spacing: .15em; text-transform: uppercase;
+    font-size: 2.8rem; font-weight: 900; letter-spacing: .15em; text-transform: uppercase;
     background: linear-gradient(135deg, var(--crimson) 0%, var(--coral) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     display: block; margin-bottom: .5rem;
   }
-  .auth-tagline {
-    font-family: 'DM Mono', monospace;
-    font-size: .75rem; color: var(--ash); letter-spacing: .12em;
-    text-transform: uppercase;
-  }
-
+  .auth-tagline { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--ash); letter-spacing: .12em; text-transform: uppercase; }
   .auth-card {
-    background: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.9);
     border: 1px solid rgba(232,55,42,.15);
-    border-radius: 6px;
-    padding: 2.5rem;
+    border-radius: 6px; padding: 2.5rem;
     backdrop-filter: blur(20px);
     box-shadow: 0 40px 80px rgba(200,60,50,.15);
   }
-
-  .tab-row {
-    display: flex; gap: 0; margin-bottom: 2rem;
-    border: 1px solid rgba(232,55,42,.2); border-radius: 4px;
-    overflow: hidden;
-  }
-  .tab {
-    flex: 1; padding: .7rem;
-    background: none; border: none; cursor: pointer;
-    font-family: 'Instrument Sans', sans-serif;
-    font-size: .82rem; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--ash); transition: all .2s;
-  }
-  .tab.active { background: var(--crimson); color: var(--bone); font-weight: 600; }
-
+  .tab-row { display: flex; margin-bottom: 2rem; border: 1px solid rgba(232,55,42,.2); border-radius: 4px; overflow: hidden; }
+  .tab { flex: 1; padding: .7rem; background: none; border: none; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ash); transition: all .2s; }
+  .tab.active { background: var(--crimson); color: #fff; font-weight: 600; }
   .form-group { margin-bottom: 1.3rem; }
-  .form-label {
-    display: block; font-size: .75rem; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--ash);
-    font-family: 'DM Mono', monospace; margin-bottom: .5rem;
-  }
+  .form-label { display: block; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ash); font-family: 'DM Mono', monospace; margin-bottom: .5rem; }
   .form-input {
     width: 100%; padding: .85rem 1rem;
     background: rgba(255,255,255,.9);
     border: 1px solid rgba(232,55,42,.2);
     border-radius: 3px; color: var(--bone);
     font-family: 'Instrument Sans', sans-serif; font-size: .95rem;
-    transition: border-color .2s, box-shadow .2s;
-    outline: none;
+    transition: border-color .2s, box-shadow .2s; outline: none;
   }
   .form-input:focus { border-color: var(--vermilion); box-shadow: 0 0 0 3px rgba(255,107,91,.2); }
   .form-input::placeholder { color: var(--ash); opacity: .6; }
-
+  .form-input:disabled { background: rgba(232,55,42,.04); color: var(--ash); cursor: not-allowed; }
   .btn-main {
     width: 100%; padding: 1rem;
     background: linear-gradient(135deg, var(--crimson), var(--scarlet));
     border: none; border-radius: 3px; cursor: pointer;
-    font-family: 'Instrument Sans', sans-serif;
-    font-size: .9rem; font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--bone);
+    font-family: 'Instrument Sans', sans-serif; font-size: .9rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: #fff;
     transition: all .25s; margin-top: .5rem;
-    box-shadow: 0 8px 24px rgba(139,0,0,.4);
+    box-shadow: 0 8px 24px rgba(139,0,0,.2);
   }
-  .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.5); }
+  .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.3); }
   .btn-main:active { transform: translateY(0); }
-
-  .divider {
-    display: flex; align-items: center; gap: 1rem;
-    margin: 1.5rem 0; color: var(--ash); font-size: .8rem;
-  }
-  .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px;
-    background: rgba(100,30,20,.12);
-  }
-
-  .btn-guest {
-    width: 100%; padding: .85rem;
-    background: transparent;
-    border: 1px solid rgba(232,55,42,.25); border-radius: 3px; cursor: pointer;
-    font-family: 'Instrument Sans', sans-serif; font-size: .85rem;
-    color: var(--ash); letter-spacing: .06em;
-    transition: all .2s;
-  }
+  .divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; color: var(--ash); font-size: .8rem; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(100,30,20,.12); }
+  .btn-guest { width: 100%; padding: .85rem; background: transparent; border: 1px solid rgba(232,55,42,.25); border-radius: 3px; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .85rem; color: var(--ash); letter-spacing: .06em; transition: all .2s; }
   .btn-guest:hover { border-color: var(--crimson); color: var(--crimson); background: rgba(232,55,42,.05); }
+  .auth-error { background: rgba(232,55,42,.08); border: 1px solid rgba(232,55,42,.3); border-radius: 3px; padding: .7rem 1rem; font-size: .82rem; color: var(--crimson); margin-bottom: 1rem; display: none; }
+  .pass-strength { margin-top: .4rem; display: flex; gap: .3rem; }
+  .ps-bar { height: 3px; flex: 1; border-radius: 2px; background: rgba(232,55,42,.12); transition: background .3s; }
+  .ps-bar.weak   { background: var(--crimson); }
+  .ps-bar.medium { background: var(--coral); }
+  .ps-bar.strong { background: #27ae60; }
 
-  .auth-error {
-    background: rgba(232,55,42,.08); border: 1px solid rgba(232,55,42,.3);
-    border-radius: 3px; padding: .7rem 1rem;
-    font-size: .82rem; color: var(--crimson);
-    margin-bottom: 1rem; display: none;
-  }
+  /* ─── PAGE CONTAINER ─── */
+  .page-container { flex: 1; display: flex; flex-direction: column; padding: 3rem; max-width: 1000px; margin: 0 auto; width: 100%; animation: slideUp .5s ease both; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; margin-bottom: .4rem; }
+  .page-sub { font-family: 'DM Mono', monospace; font-size: .76rem; color: var(--ash); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2.5rem; }
 
-  /* ─── UPLOAD SCREEN ─── */
-  #screen-upload { padding: 0; }
-
-  .upload-container {
-    flex: 1; display: flex; flex-direction: column;
-    padding: 3rem; max-width: 900px; margin: 0 auto; width: 100%;
-    animation: slideUp .5s ease both;
-  }
-
-  .page-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.4rem; font-weight: 700;
-    margin-bottom: .5rem;
-  }
-  .page-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: .78rem; color: var(--ash); letter-spacing: .1em;
-    text-transform: uppercase; margin-bottom: 3rem;
-  }
-
-  .drop-zone {
-    border: 2px dashed rgba(232,55,42,.35);
-    border-radius: 8px;
-    padding: 5rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all .3s;
-    background: rgba(255,107,91,.04);
-    position: relative;
-    overflow: hidden;
-  }
-  .drop-zone::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at center, rgba(232,55,42,.07) 0%, transparent 70%);
-    opacity: 0; transition: opacity .3s;
-  }
-  .drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--vermilion);
-    background: rgba(232,55,42,.07);
-  }
+  /* ─── UPLOAD ─── */
+  .drop-zone { border: 2px dashed rgba(232,55,42,.35); border-radius: 8px; padding: 5rem 2rem; text-align: center; cursor: pointer; transition: all .3s; background: rgba(255,107,91,.03); position: relative; overflow: hidden; }
+  .drop-zone::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(232,55,42,.07) 0%, transparent 70%); opacity: 0; transition: opacity .3s; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--vermilion); background: rgba(232,55,42,.06); }
   .drop-zone:hover::before, .drop-zone.drag-over::before { opacity: 1; }
-
-  .drop-icon {
-    width: 72px; height: 72px; margin: 0 auto 1.5rem;
-    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; box-shadow: 0 12px 32px rgba(139,0,0,.4);
-  }
-  .drop-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem; margin-bottom: .6rem;
-  }
+  .drop-icon { width: 72px; height: 72px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--crimson), var(--scarlet)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 12px 32px rgba(139,0,0,.2); }
+  .drop-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: .6rem; }
   .drop-sub { font-size: .88rem; color: var(--ash); margin-bottom: 1.5rem; }
-  .drop-btn {
-    display: inline-block; padding: .7rem 2rem;
-    background: var(--crimson); border-radius: 3px;
-    font-size: .85rem; font-weight: 600;
-    letter-spacing: .08em; text-transform: uppercase;
-    cursor: pointer; transition: background .2s;
-  }
+  .drop-btn { display: inline-block; padding: .7rem 2rem; background: var(--crimson); border-radius: 3px; font-size: .85rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s; color: #fff; }
   .drop-btn:hover { background: var(--scarlet); }
-  .drop-note {
-    font-family: 'DM Mono', monospace;
-    font-size: .7rem; color: var(--ash);
-    letter-spacing: .08em; margin-top: 1rem; text-transform: uppercase;
-  }
-
+  .drop-note { font-family: 'DM Mono', monospace; font-size: .7rem; color: var(--ash); letter-spacing: .08em; margin-top: 1rem; text-transform: uppercase; }
   #file-input { display: none; }
-
-  .file-queue {
-    margin-top: 2rem;
-    display: flex; flex-direction: column; gap: .8rem;
-  }
-  .file-item {
-    display: flex; align-items: center; gap: 1rem;
-    background: rgba(255,255,255,.8);
-    border: 1px solid rgba(232,55,42,.15);
-    border-radius: 4px; padding: 1rem 1.2rem;
-    animation: slideUp .3s ease both;
-  }
+  .file-queue { margin-top: 2rem; display: flex; flex-direction: column; gap: .8rem; }
+  .file-item { display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.15); border-radius: 4px; padding: 1rem 1.2rem; animation: slideUp .3s ease both; }
   .file-icon { font-size: 1.5rem; flex-shrink: 0; }
   .file-info { flex: 1; }
   .file-name { font-size: .9rem; font-weight: 500; margin-bottom: .2rem; word-break: break-all; }
   .file-meta { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--ash); }
-  .file-status {
-    font-family: 'DM Mono', monospace; font-size: .7rem;
-    padding: .3rem .7rem; border-radius: 2px;
-    background: rgba(232,55,42,.1); color: var(--crimson);
-    text-transform: uppercase; letter-spacing: .06em;
-  }
-  .file-remove {
-    background: none; border: none; cursor: pointer;
-    color: var(--ash); font-size: 1.1rem; padding: .2rem .5rem;
-    transition: color .2s; flex-shrink: 0;
-  }
+  .file-status { font-family: 'DM Mono', monospace; font-size: .7rem; padding: .3rem .7rem; border-radius: 2px; background: rgba(232,55,42,.1); color: var(--crimson); text-transform: uppercase; letter-spacing: .06em; }
+  .file-remove { background: none; border: none; cursor: pointer; color: var(--ash); font-size: 1.1rem; padding: .2rem .5rem; transition: color .2s; flex-shrink: 0; }
   .file-remove:hover { color: var(--vermilion); }
-
-  .analyze-bar {
-    margin-top: 2rem; display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: wrap; gap: 1rem;
-  }
+  .analyze-bar { margin-top: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
   .file-count { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--ash); }
-  .btn-analyze {
-    padding: .9rem 2.5rem;
-    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
-    border: none; border-radius: 3px; cursor: pointer;
-    font-family: 'Instrument Sans', sans-serif;
-    font-size: .9rem; font-weight: 600; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--bone);
-    transition: all .25s;
-    box-shadow: 0 8px 24px rgba(139,0,0,.4);
-    display: flex; align-items: center; gap: .6rem;
-  }
-  .btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.5); }
+  .btn-analyze { padding: .9rem 2.5rem; background: linear-gradient(135deg, var(--crimson), var(--scarlet)); border: none; border-radius: 3px; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .9rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #fff; transition: all .25s; box-shadow: 0 8px 24px rgba(139,0,0,.2); display: flex; align-items: center; gap: .6rem; }
+  .btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(139,0,0,.3); }
   .btn-analyze:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
-  /* Progress bar */
-  .progress-wrap {
-    margin-top: 1.5rem; display: none;
-  }
+  .progress-wrap { margin-top: 1.5rem; display: none; }
   .progress-label { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--ash); margin-bottom: .5rem; }
-  .progress-bar { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
-  .progress-fill {
-    height: 100%; background: linear-gradient(90deg, var(--crimson), var(--vermilion), var(--coral));
-    border-radius: 2px; width: 0%;
-    transition: width .3s ease;
-    box-shadow: 0 0 10px rgba(231,76,60,.6);
-  }
+  .progress-bar { height: 3px; background: rgba(232,55,42,.12); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--crimson), var(--vermilion), var(--coral)); border-radius: 2px; width: 0%; transition: width .3s ease; box-shadow: 0 0 10px rgba(231,76,60,.4); }
 
-  /* ─── RESULTS SCREEN ─── */
-  #screen-results { padding: 0; }
-
-  .results-container {
-    flex: 1; padding: 3rem; max-width: 1100px; margin: 0 auto; width: 100%;
-    animation: slideUp .5s ease both;
-  }
-
-  .results-header {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem;
-  }
-  .results-back {
-    background: none; border: 1px solid rgba(61,26,24,.2);
-    color: var(--ash); cursor: pointer; padding: .5rem 1.2rem;
-    font-family: 'Instrument Sans', sans-serif; font-size: .8rem;
-    letter-spacing: .08em; text-transform: uppercase;
-    border-radius: 2px; transition: all .2s;
-  }
-  .results-back:hover { border-color: var(--crimson); color: var(--crimson); }
-
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .result-card {
-    background: rgba(255,255,255,.9);
-    border: 1px solid rgba(232,55,42,.12);
-    border-radius: 6px; overflow: hidden;
-    transition: transform .25s, box-shadow .25s, border-color .25s;
-    animation: cardIn .5s ease both;
-    box-shadow: 0 4px 16px rgba(200,60,50,.07);
-  }
-  .result-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 50px rgba(200,60,50,.15);
-    border-color: rgba(232,55,42,.3);
-  }
-
-  .card-header {
-    background: linear-gradient(135deg, rgba(139,0,0,.5), rgba(192,57,43,.3));
-    padding: 1.2rem 1.5rem;
-    display: flex; align-items: center; gap: .8rem;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-  }
-  .card-icon { font-size: 1.6rem; flex-shrink: 0; }
-  .card-filename {
-    font-size: .9rem; font-weight: 600;
-    word-break: break-all; flex: 1;
-  }
-  .card-badge {
-    font-family: 'DM Mono', monospace; font-size: .65rem;
-    padding: .25rem .6rem; background: var(--vermilion); border-radius: 2px;
-    text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0;
-  }
-
-  .card-body { padding: 1.5rem; }
-
-  .data-row {
-    display: flex; align-items: center;
-    padding: .9rem 0;
-    border-bottom: 1px solid rgba(232,55,42,.07);
-  }
-  .data-row:last-child { border-bottom: none; padding-bottom: 0; }
-
-  .data-icon {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(232,55,42,.1); display: flex; align-items: center;
-    justify-content: center; font-size: 1rem; flex-shrink: 0; margin-right: 1rem;
-  }
-  .data-label {
-    font-family: 'DM Mono', monospace; font-size: .68rem;
-    color: var(--ash); text-transform: uppercase; letter-spacing: .1em;
-    margin-bottom: .15rem;
-  }
-  .data-value { font-size: .95rem; font-weight: 500; color: var(--bone); }
-  .data-value.highlight { color: var(--crimson); font-family: 'DM Mono', monospace; }
-
-  .color-swatch {
-    display: inline-flex; align-items: center; gap: .4rem;
-  }
-  .swatch-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-  }
-  .swatch-dot.rgb  { background: linear-gradient(135deg, #E74C3C, #3498DB, #2ECC71); }
-  .swatch-dot.cmyk { background: linear-gradient(135deg, #00B4D8, #FF0054, #F9C74F, #212529); }
-
-  /* loading card state */
-  .card-loading { position: relative; overflow: hidden; }
-  .card-loading::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.03) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-  .empty-state {
-    text-align: center; padding: 4rem 2rem; color: var(--ash);
-  }
-  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: .4; }
-  .empty-msg { font-family: 'DM Mono', monospace; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
-
-  /* ─── SUMMARY BAR ─── */
-  .summary-bar {
-    display: flex; gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
-  }
-  .summary-pill {
-    background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.18);
-    border-radius: 50px; padding: .5rem 1.2rem;
-    font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--crimson);
-    letter-spacing: .06em;
-  }
+  /* ─── RESULTS ─── */
+  .results-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+  .summary-bar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .summary-pill { background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.18); border-radius: 50px; padding: .45rem 1.1rem; font-family: 'DM Mono', monospace; font-size: .73rem; color: var(--crimson); letter-spacing: .06em; }
   .summary-pill span { color: var(--ash); margin-right: .4rem; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.4rem; }
+  .result-card { background: rgba(255,255,255,.9); border: 1px solid rgba(232,55,42,.12); border-radius: 6px; overflow: hidden; transition: transform .25s, box-shadow .25s, border-color .25s; animation: cardIn .5s ease both; box-shadow: 0 4px 16px rgba(200,60,50,.07); }
+  .result-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(200,60,50,.15); border-color: rgba(232,55,42,.3); }
+  .card-header { background: linear-gradient(135deg, rgba(232,55,42,.12), rgba(255,107,91,.07)); padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: .8rem; border-bottom: 1px solid rgba(232,55,42,.08); }
+  .card-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .card-filename { font-size: .88rem; font-weight: 600; word-break: break-all; flex: 1; }
+  .card-badge { font-family: 'DM Mono', monospace; font-size: .63rem; padding: .25rem .6rem; background: var(--vermilion); color: #fff; border-radius: 2px; text-transform: uppercase; letter-spacing: .06em; flex-shrink: 0; }
+  .card-body { padding: 1.4rem; }
+  .data-row { display: flex; align-items: center; padding: .85rem 0; border-bottom: 1px solid rgba(232,55,42,.07); }
+  .data-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .data-icon { width: 34px; height: 34px; border-radius: 50%; background: rgba(232,55,42,.1); display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0; margin-right: 1rem; }
+  .data-label { font-family: 'DM Mono', monospace; font-size: .66rem; color: var(--ash); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .15rem; }
+  .data-value { font-size: .92rem; font-weight: 500; color: var(--bone); }
+  .data-value.highlight { color: var(--crimson); font-family: 'DM Mono', monospace; }
+  .color-swatch { display: inline-flex; align-items: center; gap: .4rem; }
+  .swatch-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .swatch-dot.rgb  { background: linear-gradient(135deg, #E74C3C, #3498DB, #2ECC71); }
+  .swatch-dot.cmyk { background: linear-gradient(135deg, #00B4D8, #FF0054, #F9C74F, #111); }
 
-  /* ─── USER BADGE ─── */
-  .user-badge {
-    display: flex; align-items: center; gap: .6rem;
-  }
-  .user-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--crimson), var(--scarlet));
-    display: flex; align-items: center; justify-content: center;
-    font-size: .85rem; font-weight: 700;
-  }
-  .user-name { font-size: .85rem; color: rgba(255,255,255,.7); }
+  /* ─── PROFILE ─── */
+  #screen-profile { padding: 0; }
+  .profile-layout { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; flex: 1; padding: 3rem; max-width: 1100px; margin: 0 auto; width: 100%; animation: slideUp .5s ease both; }
 
-  /* ─── ANIMATIONS ─── */
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(20px) scale(.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
+  .profile-sidebar { display: flex; flex-direction: column; }
+  .profile-avatar-big { width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg, var(--crimson), var(--coral)); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: #fff; margin-bottom: .8rem; box-shadow: 0 8px 24px rgba(232,55,42,.22); }
+  .profile-display-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; margin-bottom: .2rem; }
+  .profile-display-email { font-family: 'DM Mono', monospace; font-size: .7rem; color: var(--ash); word-break: break-all; margin-bottom: 1rem; }
+  .profile-stats { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(232,55,42,.1); }
+  .pstat-val { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--crimson); display: block; }
+  .pstat-lbl { font-family: 'DM Mono', monospace; font-size: .63rem; color: var(--ash); text-transform: uppercase; letter-spacing: .08em; }
 
-  .guest-badge {
-    font-family: 'DM Mono', monospace; font-size: .68rem;
-    padding: .3rem .8rem; background: rgba(232,55,42,.1);
-    border: 1px solid rgba(232,55,42,.25); border-radius: 50px;
-    color: var(--crimson); letter-spacing: .06em; text-transform: uppercase;
-  }
+  .profile-menu { display: flex; flex-direction: column; gap: .3rem; }
+  .pmenu-item { display: flex; align-items: center; gap: .7rem; padding: .75rem 1rem; border-radius: 4px; cursor: pointer; font-size: .88rem; color: var(--ash); transition: all .2s; border: 1px solid transparent; }
+  .pmenu-item:hover { background: rgba(232,55,42,.06); color: var(--crimson); border-color: rgba(232,55,42,.1); }
+  .pmenu-item.active { background: rgba(232,55,42,.1); color: var(--crimson); font-weight: 600; border-color: rgba(232,55,42,.18); }
+  .pmenu-icon { font-size: 1.1rem; }
 
-  /* Toast */
-  #toast {
-    position: fixed; bottom: 2rem; right: 2rem;
-    background: #fff; border: 1px solid rgba(232,55,42,.3);
-    border-radius: 4px; padding: 1rem 1.5rem;
-    font-size: .85rem; color: var(--bone);
-    transform: translateY(100px); opacity: 0;
-    transition: all .3s; z-index: 10000;
-    max-width: 300px;
-    box-shadow: 0 8px 24px rgba(200,60,50,.15);
-  }
+  .profile-content { display: flex; flex-direction: column; gap: 1.5rem; }
+  .profile-panel { background: rgba(255,255,255,.9); border: 1px solid rgba(232,55,42,.12); border-radius: 6px; overflow: hidden; box-shadow: 0 4px 16px rgba(200,60,50,.06); }
+  .panel-header { padding: 1.2rem 1.8rem; border-bottom: 1px solid rgba(232,55,42,.08); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .panel-badge { font-family: 'DM Mono', monospace; font-size: .68rem; padding: .25rem .7rem; background: rgba(232,55,42,.1); color: var(--crimson); border-radius: 50px; }
+  .panel-body { padding: 1.8rem; }
+
+  .field-row { display: flex; align-items: center; gap: 1rem; }
+  .field-row .form-input { flex: 1; }
+  .btn-field { padding: .72rem 1.2rem; background: none; border: 1px solid rgba(232,55,42,.25); border-radius: 3px; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .8rem; color: var(--crimson); white-space: nowrap; transition: all .2s; }
+  .btn-field:hover { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+  .btn-save { padding: .8rem 2rem; background: linear-gradient(135deg, var(--crimson), var(--scarlet)); border: none; border-radius: 3px; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .85rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #fff; transition: all .2s; box-shadow: 0 6px 18px rgba(139,0,0,.18); }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(139,0,0,.25); }
+  .section-msg { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--ash); margin-top: .5rem; }
+  .section-msg.ok  { color: #27ae60; }
+  .section-msg.err { color: var(--crimson); }
+
+  /* ─── HISTORY TABLE ─── */
+  .history-empty { text-align: center; padding: 3rem; }
+  .history-empty-icon { font-size: 2.5rem; opacity: .35; margin-bottom: .8rem; }
+  .history-empty-msg { font-family: 'DM Mono', monospace; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ash); }
+
+  .history-filters { display: flex; gap: .8rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .filter-input { padding: .5rem .9rem; background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.2); border-radius: 3px; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--bone); outline: none; transition: border-color .2s; flex: 1; min-width: 180px; }
+  .filter-input:focus { border-color: var(--vermilion); }
+  .filter-select { padding: .5rem .9rem; background: rgba(255,255,255,.8); border: 1px solid rgba(232,55,42,.2); border-radius: 3px; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--bone); outline: none; cursor: pointer; }
+
+  .history-table { width: 100%; border-collapse: collapse; }
+  .history-table th { font-family: 'DM Mono', monospace; font-size: .67rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ash); text-align: left; padding: .6rem .9rem; border-bottom: 2px solid rgba(232,55,42,.1); }
+  .history-table td { padding: .85rem .9rem; border-bottom: 1px solid rgba(232,55,42,.06); font-size: .84rem; vertical-align: middle; }
+  .history-table tr:last-child td { border-bottom: none; }
+  .history-table tbody tr:hover td { background: rgba(232,55,42,.02); }
+  .htd-name { font-weight: 500; max-width: 200px; word-break: break-all; }
+  .htd-mono { font-family: 'DM Mono', monospace; font-size: .76rem; color: var(--ash); }
+  .htd-badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: .64rem; padding: .2rem .55rem; border-radius: 2px; text-transform: uppercase; letter-spacing: .04em; }
+  .htd-badge.rgb  { background: rgba(52,152,219,.1); color: #2980b9; }
+  .htd-badge.cmyk { background: rgba(39,174,96,.1); color: #27ae60; }
+  .htd-action { background: none; border: none; cursor: pointer; color: var(--ash); font-size: .85rem; padding: .3rem .6rem; border-radius: 2px; transition: all .2s; }
+  .htd-action:hover { background: rgba(232,55,42,.1); color: var(--crimson); }
+
+  /* ─── MISC ─── */
+  .guest-badge { font-family: 'DM Mono', monospace; font-size: .68rem; padding: .3rem .8rem; background: rgba(232,55,42,.1); border: 1px solid rgba(232,55,42,.25); border-radius: 50px; color: var(--crimson); letter-spacing: .06em; text-transform: uppercase; }
+
+  #toast { position: fixed; bottom: 2rem; right: 2rem; background: #fff; border: 1px solid rgba(232,55,42,.2); border-left: 4px solid var(--crimson); border-radius: 4px; padding: 1rem 1.5rem; font-size: .85rem; color: var(--bone); transform: translateY(120px); opacity: 0; transition: all .3s; z-index: 10000; max-width: 300px; box-shadow: 0 8px 24px rgba(200,60,50,.15); }
   #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-left-color: #27ae60; }
 
-  /* Multi-file upload progress items */
-  .file-progress {
-    margin-top: .3rem; display: none;
-  }
-  .file-progress-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; overflow: hidden; }
-  .file-progress-fill {
-    height: 100%; background: var(--vermilion); width: 0%;
-    transition: width .3s ease;
-  }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes cardIn  { from { opacity: 0; transform: translateY(20px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-  @media (max-width: 600px) {
+  @media (max-width: 720px) {
     .topbar { padding: 1rem 1.5rem; }
-    .upload-container, .results-container { padding: 1.5rem; }
+    .page-container { padding: 1.5rem; }
+    .profile-layout { grid-template-columns: 1fr; padding: 1.5rem; }
+    .cards-grid { grid-template-columns: 1fr; }
     .auth-card { padding: 1.5rem; }
     .drop-zone { padding: 3rem 1.5rem; }
-    .cards-grid { grid-template-columns: 1fr; }
+    .history-table { font-size: .76rem; }
   }
 </style>
 </head>
 <body>
-<div class="bg-geo">
-  <span></span><span></span><span></span>
-</div>
-
-<!-- TOAST -->
+<div class="bg-geo"><span></span><span></span><span></span></div>
 <div id="toast"></div>
 
-<!-- ══════════════════════════════════════ AUTH SCREEN ══════════════════════════════════════ -->
+<!-- ══════════════════════ AUTH ══════════════════════ -->
 <div id="screen-auth" class="screen active">
   <div class="auth-wrapper">
     <div class="auth-header">
       <span class="auth-logo">PDFAnalizer</span>
       <p class="auth-tagline">Análisis Forense de Documentos PDF</p>
     </div>
-
     <div class="auth-card">
       <div class="tab-row">
         <button class="tab active" onclick="switchTab('login')">Ingresar</button>
         <button class="tab" onclick="switchTab('register')">Crear cuenta</button>
       </div>
-
       <div id="auth-error" class="auth-error"></div>
 
-      <!-- LOGIN -->
       <div id="form-login">
         <div class="form-group">
           <label class="form-label">Correo electrónico</label>
-          <input class="form-input" type="email" id="login-email" placeholder="usuario@ejemplo.com" autocomplete="email">
+          <input class="form-input" type="email" id="login-email" placeholder="usuario@ejemplo.com">
         </div>
         <div class="form-group">
           <label class="form-label">Contraseña</label>
-          <input class="form-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+          <input class="form-input" type="password" id="login-pass" placeholder="••••••••">
         </div>
         <button class="btn-main" onclick="handleLogin()">Ingresar →</button>
       </div>
 
-      <!-- REGISTER -->
       <div id="form-register" style="display:none">
         <div class="form-group">
           <label class="form-label">Nombre completo</label>
-          <input class="form-input" type="text" id="reg-name" placeholder="Tu nombre" autocomplete="name">
+          <input class="form-input" type="text" id="reg-name" placeholder="Tu nombre">
         </div>
         <div class="form-group">
           <label class="form-label">Correo electrónico</label>
-          <input class="form-input" type="email" id="reg-email" placeholder="usuario@ejemplo.com" autocomplete="email">
+          <input class="form-input" type="email" id="reg-email" placeholder="usuario@ejemplo.com">
         </div>
         <div class="form-group">
           <label class="form-label">Contraseña</label>
-          <input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" oninput="checkPassStrength(this.value,'a')">
+          <div class="pass-strength"><div class="ps-bar" id="psa1"></div><div class="ps-bar" id="psa2"></div><div class="ps-bar" id="psa3"></div></div>
         </div>
         <div class="form-group">
           <label class="form-label">Confirmar contraseña</label>
-          <input class="form-input" type="password" id="reg-pass2" placeholder="••••••••" autocomplete="new-password">
+          <input class="form-input" type="password" id="reg-pass2" placeholder="••••••••">
         </div>
         <button class="btn-main" onclick="handleRegister()">Crear cuenta →</button>
       </div>
@@ -570,20 +345,15 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════ UPLOAD SCREEN ══════════════════════════════════════ -->
+<!-- ══════════════════════ UPLOAD ══════════════════════ -->
 <div id="screen-upload" class="screen">
   <div class="topbar">
-    <div class="logo"><span class="logo-dot"></span>PDFAnalizer</div>
-    <div class="user-badge">
-      <div id="topbar-user-info"></div>
-      <button class="nav-btn" onclick="logout()">Salir</button>
-    </div>
+    <div class="logo" onclick="goToUpload()"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="topbar-nav" id="upload-topnav"></div>
   </div>
-
-  <div class="upload-container">
+  <div class="page-container">
     <h1 class="page-title">Subir Documentos</h1>
     <p class="page-sub">Arrastra o selecciona archivos PDF para analizar</p>
-
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
       <div class="drop-icon">📄</div>
       <h2 class="drop-title">Arrastra tus PDFs aquí</h2>
@@ -592,16 +362,11 @@
       <p class="drop-note">Solo archivos PDF · Sin límite de tamaño</p>
     </div>
     <input type="file" id="file-input" accept=".pdf" multiple>
-
     <div class="file-queue" id="file-queue"></div>
-
     <div class="analyze-bar">
       <span class="file-count" id="file-count">0 archivos seleccionados</span>
-      <button class="btn-analyze" id="btn-analyze" onclick="analyzeFiles()" disabled>
-        <span>⚡</span> Analizar PDFs
-      </button>
+      <button class="btn-analyze" id="btn-analyze" onclick="analyzeFiles()" disabled><span>⚡</span> Analizar PDFs</button>
     </div>
-
     <div class="progress-wrap" id="progress-wrap">
       <p class="progress-label" id="progress-label">Procesando...</p>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
@@ -609,422 +374,566 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════ RESULTS SCREEN ══════════════════════════════════════ -->
+<!-- ══════════════════════ RESULTS ══════════════════════ -->
 <div id="screen-results" class="screen">
   <div class="topbar">
-    <div class="logo"><span class="logo-dot"></span>PDFAnalizer</div>
-    <div class="user-badge">
-      <div id="results-user-info"></div>
-      <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
-      <button class="nav-btn" onclick="logout()">Salir</button>
-    </div>
+    <div class="logo" onclick="goToUpload()"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="topbar-nav" id="results-topnav"></div>
   </div>
-
-  <div class="results-container">
+  <div class="page-container" style="max-width:1100px">
     <div class="results-header">
       <div>
         <h1 class="page-title">Resultados del Análisis</h1>
         <p class="page-sub" id="results-sub">Información extraída de tus documentos</p>
       </div>
+      <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
     </div>
-
     <div class="summary-bar" id="summary-bar"></div>
     <div class="cards-grid" id="cards-grid"></div>
   </div>
 </div>
 
-<script>
-/* ══════════════════════ STATE ══════════════════════ */
-let currentUser = null; // {name, email, isGuest}
-let selectedFiles = []; // File[]
-let analysisResults = []; // [{name, size, ...}]
-const users = JSON.parse(localStorage.getItem('verm_users') || '{}');
+<!-- ══════════════════════ PROFILE ══════════════════════ -->
+<div id="screen-profile" class="screen">
+  <div class="topbar">
+    <div class="logo" onclick="goToUpload()"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="topbar-nav" id="profile-topnav"></div>
+  </div>
+  <div class="profile-layout">
+    <!-- Sidebar -->
+    <div class="profile-sidebar">
+      <div class="profile-avatar-big" id="prof-avatar">U</div>
+      <div class="profile-display-name" id="prof-name">Usuario</div>
+      <div class="profile-display-email" id="prof-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a1c2ced3d3c4cee1c4cbc4ccd1cdce8fc2cecc">[email&#160;protected]</a></div>
+      <div class="profile-stats">
+        <div class="pstat"><span class="pstat-val" id="stat-files">0</span><span class="pstat-lbl">Archivos</span></div>
+        <div class="pstat"><span class="pstat-val" id="stat-kb">0</span><span class="pstat-lbl">KB Total</span></div>
+      </div>
+      <div class="profile-menu">
+        <div class="pmenu-item active" id="pmenu-cuenta" onclick="switchProfileTab('cuenta')"><span class="pmenu-icon">👤</span> Cuenta</div>
+        <div class="pmenu-item" id="pmenu-archivos" onclick="switchProfileTab('archivos')"><span class="pmenu-icon">📁</span> Archivos subidos</div>
+      </div>
+    </div>
+    <!-- Dynamic content -->
+    <div class="profile-content" id="profile-content"></div>
+  </div>
+</div>
 
-/* ══════════════════════ UTILS ══════════════════════ */
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+<script type="module">
+/* ══════════════════════════════════════════════════════
+   FIREBASE — Authentication + Firestore
+   Colecciones:
+     users/{uid}  → { name, email, createdAt }
+     files/{uid}/docs/{docId} → { name, size, software,
+       colorProfile, width_cm, height_cm, pages, version,
+       created, analyzedAt }
+══════════════════════════════════════════════════════ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, updateProfile, updatePassword, deleteUser as fbDeleteUser,
+  reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, collection,
+  addDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIVk19FjBoq0q4L5LQ3rX_EIRBnumz30g",
+  authDomain: "pdfanalizer-1eba6.firebaseapp.com",
+  projectId: "pdfanalizer-1eba6",
+  storageBucket: "pdfanalizer-1eba6.firebasestorage.app",
+  messagingSenderId: "258638404165",
+  appId: "1:258638404165:web:beed20f57db5f5d02d612c"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const fdb  = getFirestore(app);
+
+/* ══════ STATE ══════ */
+let currentUser    = null; // { uid, name, email, isGuest, createdAt }
+let selectedFiles  = [];
+let analysisResults = [];
+
+/* ══════ UTILS ══════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
 }
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show'+(type?' '+type:'');
+  setTimeout(()=>t.className='',3500);
 }
 
-function saveUsers() {
-  localStorage.setItem('verm_users', JSON.stringify(users));
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+function fmtDate(val){
+  if(!val) return '—';
+  const d = val?.toDate ? val.toDate() : new Date(val);
+  return d.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'});
 }
 
-function setUserBadge(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (currentUser.isGuest) {
-    el.innerHTML = '<span class="guest-badge">Modo Invitado</span>';
+function initials(name){ return (name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+function renderTopbar(id){
+  const el=document.getElementById(id); if(!el||!currentUser) return;
+  if(currentUser.isGuest){
+    el.innerHTML=`<span class="guest-badge">Modo Invitado</span><button class="nav-btn" onclick="window._logout()">Salir</button>`;
   } else {
-    const initials = currentUser.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    el.innerHTML = `<div class="user-badge"><div class="user-avatar">${initials}</div><span class="user-name">${currentUser.name.split(' ')[0]}</span></div>`;
+    el.innerHTML=`
+      <div class="topbar-user">
+        <span class="topbar-name">${currentUser.name.split(' ')[0]}</span>
+        <div class="user-avatar-btn" title="Mi perfil" onclick="window._goToProfile()">${initials(currentUser.name)}</div>
+      </div>
+      <button class="nav-btn" onclick="window._logout()">Salir</button>`;
   }
 }
 
-/* ══════════════════════ AUTH ══════════════════════ */
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
-  document.getElementById('form-login').style.display    = tab === 'login'    ? '' : 'none';
-  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
-  clearError();
+function checkPassStrength(val,sfx){
+  ['1','2','3'].forEach(n=>{const b=document.getElementById('ps'+sfx+n);if(b)b.className='ps-bar';});
+  if(!val) return;
+  let s=0; if(val.length>=6)s++; if(val.length>=10)s++; if(/[A-Z]/.test(val)&&/[0-9]/.test(val))s++;
+  const cls=['weak','medium','strong'];
+  for(let i=0;i<s;i++){const b=document.getElementById('ps'+sfx+(i+1));if(b)b.classList.add(cls[s-1]);}
+}
+window.checkPassStrength = checkPassStrength;
+
+/* ══════ FIREBASE AUTH ══════ */
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('form-login').style.display    = tab==='login'?'':'none';
+  document.getElementById('form-register').style.display = tab==='register'?'':'none';
+  document.getElementById('auth-error').style.display='none';
+}
+window.switchTab = switchTab;
+
+function authErr(m){ const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; }
+
+function mapFirebaseError(code){
+  const map={
+    'auth/user-not-found':'No existe una cuenta con ese correo.',
+    'auth/wrong-password':'Contraseña incorrecta.',
+    'auth/email-already-in-use':'Ya existe una cuenta con ese correo.',
+    'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
+    'auth/invalid-email':'Correo electrónico inválido.',
+    'auth/too-many-requests':'Demasiados intentos. Intenta más tarde.',
+    'auth/invalid-credential':'Correo o contraseña incorrectos.',
+  };
+  return map[code]||'Error de autenticación. Intenta de nuevo.';
 }
 
-function showError(msg) {
-  const e = document.getElementById('auth-error');
-  e.textContent = msg; e.style.display = 'block';
+async function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass =document.getElementById('login-pass').value;
+  document.getElementById('auth-error').style.display='none';
+  if(!email||!pass) return authErr('Completa todos los campos.');
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const snap  = await getDoc(doc(fdb,'users',cred.user.uid));
+    const data  = snap.exists() ? snap.data() : {};
+    currentUser = { uid:cred.user.uid, name: data.name||email, email, isGuest:false, createdAt: data.createdAt };
+    afterLogin();
+  } catch(e){ authErr(mapFirebaseError(e.code)); }
 }
-function clearError() {
-  document.getElementById('auth-error').style.display = 'none';
-}
+window.handleLogin = handleLogin;
 
-function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  clearError();
-  if (!email || !pass) return showError('Completa todos los campos.');
-  if (!users[email]) return showError('No existe una cuenta con ese correo.');
-  if (users[email].pass !== btoa(pass)) return showError('Contraseña incorrecta.');
-  currentUser = { name: users[email].name, email, isGuest: false };
-  afterLogin();
+async function handleRegister(){
+  const name =document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass =document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  document.getElementById('auth-error').style.display='none';
+  if(!name||!email||!pass||!pass2) return authErr('Completa todos los campos.');
+  if(!/\S+@\S+\.\S+/.test(email))  return authErr('Correo electrónico inválido.');
+  if(pass.length<6)                 return authErr('La contraseña debe tener al menos 6 caracteres.');
+  if(pass!==pass2)                  return authErr('Las contraseñas no coinciden.');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    const createdAt = new Date().toISOString();
+    await setDoc(doc(fdb,'users',cred.user.uid), { name, email, createdAt });
+    currentUser = { uid:cred.user.uid, name, email, isGuest:false, createdAt };
+    toast('¡Cuenta creada exitosamente! 🎉','success');
+    afterLogin();
+  } catch(e){ authErr(mapFirebaseError(e.code)); }
 }
+window.handleRegister = handleRegister;
 
-function handleRegister() {
-  const name  = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass  = document.getElementById('reg-pass').value;
-  const pass2 = document.getElementById('reg-pass2').value;
-  clearError();
-  if (!name || !email || !pass || !pass2) return showError('Completa todos los campos.');
-  if (!/\S+@\S+\.\S+/.test(email)) return showError('Correo electrónico inválido.');
-  if (pass.length < 6) return showError('La contraseña debe tener al menos 6 caracteres.');
-  if (pass !== pass2) return showError('Las contraseñas no coinciden.');
-  if (users[email]) return showError('Ya existe una cuenta con ese correo.');
-  users[email] = { name, pass: btoa(pass) };
-  saveUsers();
-  currentUser = { name, email, isGuest: false };
-  toast('¡Cuenta creada exitosamente!');
-  afterLogin();
-}
+function loginAsGuest(){ currentUser={uid:null,name:'Invitado',email:'',isGuest:true}; afterLogin(); }
+window.loginAsGuest = loginAsGuest;
 
-function loginAsGuest() {
-  currentUser = { name: 'Invitado', email: '', isGuest: true };
-  afterLogin();
-}
-
-function afterLogin() {
-  selectedFiles = [];
-  setUserBadge('topbar-user-info');
-  renderQueue();
+function afterLogin(){
+  selectedFiles=[]; renderQueue();
+  renderTopbar('upload-topnav');
   showScreen('screen-upload');
 }
 
-function logout() {
-  currentUser = null;
-  selectedFiles = [];
-  analysisResults = [];
-  document.getElementById('login-email').value = '';
-  document.getElementById('login-pass').value  = '';
+async function logout(){
+  if(!currentUser?.isGuest) await signOut(auth);
+  currentUser=null; selectedFiles=[]; analysisResults=[];
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
   showScreen('screen-auth');
 }
+window._logout = logout;
 
-/* ══════════════════════ FILE HANDLING ══════════════════════ */
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
+/* ══════ UPLOAD ══════ */
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');addFiles([...e.dataTransfer.files]);});
+document.getElementById('file-input').addEventListener('change',function(){addFiles([...this.files]);this.value='';});
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault(); dropZone.classList.remove('drag-over');
-  addFiles([...e.dataTransfer.files]);
-});
-fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
-
-function addFiles(files) {
-  const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.endsWith('.pdf'));
-  if (!pdfs.length) { toast('Solo se aceptan archivos PDF.'); return; }
-  pdfs.forEach(f => {
-    if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
-      selectedFiles.push(f);
-    }
-  });
+function addFiles(files){
+  const pdfs=files.filter(f=>f.type==='application/pdf'||f.name.endsWith('.pdf'));
+  if(!pdfs.length){toast('Solo se aceptan archivos PDF.');return;}
+  pdfs.forEach(f=>{if(!selectedFiles.find(sf=>sf.name===f.name&&sf.size===f.size))selectedFiles.push(f);});
   renderQueue();
 }
+window.removeFile = function(i){ selectedFiles.splice(i,1); renderQueue(); };
 
-function removeFile(idx) {
-  selectedFiles.splice(idx, 1);
-  renderQueue();
-}
-
-function renderQueue() {
-  const q = document.getElementById('file-queue');
-  const cnt = document.getElementById('file-count');
-  const btn = document.getElementById('btn-analyze');
-  q.innerHTML = '';
-  cnt.textContent = selectedFiles.length === 0
-    ? '0 archivos seleccionados'
-    : `${selectedFiles.length} archivo${selectedFiles.length > 1 ? 's' : ''} listo${selectedFiles.length > 1 ? 's' : ''}`;
-  btn.disabled = selectedFiles.length === 0;
-
-  selectedFiles.forEach((f, i) => {
-    const kb = (f.size / 1024).toFixed(1);
-    const item = document.createElement('div');
-    item.className = 'file-item';
-    item.innerHTML = `
-      <div class="file-icon">📄</div>
-      <div class="file-info">
-        <div class="file-name">${f.name}</div>
-        <div class="file-meta">${kb} KB</div>
-      </div>
-      <span class="file-status">Listo</span>
-      <button class="file-remove" onclick="removeFile(${i})" title="Eliminar">✕</button>
-    `;
-    q.appendChild(item);
+function renderQueue(){
+  const q=document.getElementById('file-queue'),cnt=document.getElementById('file-count'),btn=document.getElementById('btn-analyze');
+  q.innerHTML='';
+  cnt.textContent=selectedFiles.length===0?'0 archivos seleccionados':`${selectedFiles.length} archivo${selectedFiles.length>1?'s':''} listo${selectedFiles.length>1?'s':''}`;
+  btn.disabled=selectedFiles.length===0;
+  selectedFiles.forEach((f,i)=>{
+    const d=document.createElement('div'); d.className='file-item';
+    d.innerHTML=`<div class="file-icon">📄</div><div class="file-info"><div class="file-name">${f.name}</div><div class="file-meta">${(f.size/1024).toFixed(1)} KB</div></div><span class="file-status">Listo</span><button class="file-remove" onclick="removeFile(${i})">✕</button>`;
+    q.appendChild(d);
   });
 }
 
-/* ══════════════════════ PDF ANALYSIS ══════════════════════ */
-async function analyzeFiles() {
-  if (!selectedFiles.length) return;
-  const btn = document.getElementById('btn-analyze');
-  const pw  = document.getElementById('progress-wrap');
-  const pf  = document.getElementById('progress-fill');
-  const pl  = document.getElementById('progress-label');
-
-  btn.disabled = true;
-  pw.style.display = 'block';
-  analysisResults = [];
-
-  for (let i = 0; i < selectedFiles.length; i++) {
-    const f = selectedFiles[i];
-    const pct = Math.round(((i) / selectedFiles.length) * 100);
-    pf.style.width = pct + '%';
-    pl.textContent = `Analizando ${i+1}/${selectedFiles.length}: ${f.name}`;
-    await sleep(200);
-    try {
-      const result = await analyzePDF(f);
-      analysisResults.push(result);
-    } catch(e) {
-      analysisResults.push({ name: f.name, size: f.size, error: true });
-    }
-  }
-
-  pf.style.width = '100%';
-  pl.textContent = '¡Análisis completo!';
-  await sleep(500);
-
-  showResults();
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function analyzePDF(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const bytes = new Uint8Array(e.target.result);
-        const result = parsePDFMetadata(bytes, file);
-        resolve(result);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    reader.onerror = () => reject(new Error('Read error'));
-    reader.readAsArrayBuffer(file);
-  });
-}
-
-function parsePDFMetadata(bytes, file) {
-  const text = new TextDecoder('latin1').decode(bytes);
-
-  // ── File size ──
-  const sizeKB = (file.size / 1024).toFixed(2);
-
-  // ── Creator / Software ──
-  let software = 'Desconocido';
-  const creatorMatch = text.match(/\/Creator\s*\(([^)]+)\)/);
-  const producerMatch = text.match(/\/Producer\s*\(([^)]+)\)/);
-  if (creatorMatch) software = cleanPDFString(creatorMatch[1]);
-  else if (producerMatch) software = cleanPDFString(producerMatch[1]);
-
-  // ── Color Profile ──
-  let colorProfile = 'RGB';
-  if (/\/DeviceCMYK|\/ICCBased.*CMYK|Separation|DeviceN/i.test(text)) colorProfile = 'CMYK';
-  else if (/\/DeviceRGB|\/ICCBased.*RGB|\/sRGB/i.test(text)) colorProfile = 'RGB';
-
-  // ── Page dimensions (MediaBox) ──
-  let width_cm = null, height_cm = null;
-  // Try to find MediaBox — [0 0 W H] in pts
-  const mediaBoxMatch = text.match(/\/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]/);
-  if (mediaBoxMatch) {
-    const pts_w = parseFloat(mediaBoxMatch[3]) - parseFloat(mediaBoxMatch[1]);
-    const pts_h = parseFloat(mediaBoxMatch[4]) - parseFloat(mediaBoxMatch[2]);
-    width_cm  = (pts_w / 72 * 2.54).toFixed(2);
-    height_cm = (pts_h / 72 * 2.54).toFixed(2);
-  }
-
-  // ── Page count ──
-  let pages = '—';
-  const pagesMatch = text.match(/\/N\s+(\d+)|\/Count\s+(\d+)/);
-  if (pagesMatch) pages = parseInt(pagesMatch[1] || pagesMatch[2]);
-
-  // ── PDF Version ──
-  let version = '—';
-  const verMatch = text.match(/%PDF-(\d+\.\d+)/);
-  if (verMatch) version = verMatch[1];
-
-  // ── Creation date ──
-  let created = '—';
-  const dateMatch = text.match(/\/CreationDate\s*\(D:(\d{4})(\d{2})(\d{2})/);
-  if (dateMatch) created = `${dateMatch[3]}/${dateMatch[2]}/${dateMatch[1]}`;
-
-  return {
-    name: file.name,
-    size: sizeKB,
-    software,
-    colorProfile,
-    width_cm,
-    height_cm,
-    pages,
-    version,
-    created,
-    error: false
-  };
-}
-
-function cleanPDFString(s) {
-  // Remove PDF escape sequences and non-printable chars
-  return s.replace(/\\(\d{3})/g, (m,p) => String.fromCharCode(parseInt(p,8)))
-          .replace(/[^\x20-\x7E]/g, '')
-          .trim()
-          .slice(0, 80) || 'Desconocido';
-}
-
-/* ══════════════════════ RESULTS ══════════════════════ */
-function goToUpload() {
-  selectedFiles = [];
-  renderQueue();
-  document.getElementById('progress-wrap').style.display = 'none';
-  document.getElementById('progress-fill').style.width = '0%';
-  document.getElementById('btn-analyze').disabled = true;
-  setUserBadge('topbar-user-info');
+function goToUpload(){
+  selectedFiles=[]; renderQueue();
+  document.getElementById('progress-wrap').style.display='none';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('btn-analyze').disabled=true;
+  renderTopbar('upload-topnav');
   showScreen('screen-upload');
 }
+window.goToUpload = goToUpload;
 
-function showResults() {
-  setUserBadge('results-user-info');
+/* ══════ ANALYSIS ══════ */
+async function analyzeFiles(){
+  if(!selectedFiles.length) return;
+  const btn=document.getElementById('btn-analyze'),pw=document.getElementById('progress-wrap'),pf=document.getElementById('progress-fill'),pl=document.getElementById('progress-label');
+  btn.disabled=true; pw.style.display='block'; analysisResults=[];
+  for(let i=0;i<selectedFiles.length;i++){
+    pf.style.width=Math.round((i/selectedFiles.length)*100)+'%';
+    pl.textContent=`Analizando ${i+1}/${selectedFiles.length}: ${selectedFiles[i].name}`;
+    await new Promise(r=>setTimeout(r,220));
+    try{ analysisResults.push(await analyzePDF(selectedFiles[i])); }
+    catch{ analysisResults.push({name:selectedFiles[i].name,size:(selectedFiles[i].size/1024).toFixed(2),error:true}); }
+  }
+  pf.style.width='100%'; pl.textContent='¡Análisis completo!';
+  await new Promise(r=>setTimeout(r,500));
 
-  const grid = document.getElementById('cards-grid');
-  const sub  = document.getElementById('results-sub');
-  const sum  = document.getElementById('summary-bar');
+  // ── Guardar en Firestore para usuarios registrados ──
+  if(currentUser && !currentUser.isGuest){
+    const colRef = collection(fdb,'users',currentUser.uid,'docs');
+    const saves  = analysisResults.filter(r=>!r.error);
+    for(const r of saves){
+      await addDoc(colRef,{
+        name:r.name, size:r.size, software:r.software,
+        colorProfile:r.colorProfile, width_cm:r.width_cm||null,
+        height_cm:r.height_cm||null, pages:r.pages||null,
+        version:r.version||null, created:r.created||null,
+        analyzedAt: serverTimestamp()
+      });
+    }
+  }
+  showResults();
+}
+window.analyzeFiles = analyzeFiles;
 
-  const n = analysisResults.length;
-  sub.textContent = `${n} documento${n!==1?'s':''} analizados`;
+async function analyzePDF(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>{try{res(parsePDFMetadata(new Uint8Array(e.target.result),file));}catch(err){rej(err);}};
+    r.onerror=()=>rej(new Error('Read error'));
+    r.readAsArrayBuffer(file);
+  });
+}
 
-  // Summary pills
-  const totalKB = analysisResults.reduce((a,r) => a + parseFloat(r.size||0), 0).toFixed(1);
-  const cmyk = analysisResults.filter(r => r.colorProfile === 'CMYK').length;
-  const rgb  = analysisResults.filter(r => r.colorProfile === 'RGB').length;
-  sum.innerHTML = `
-    <div class="summary-pill"><span>Total archivos:</span>${n}</div>
-    <div class="summary-pill"><span>Peso acumulado:</span>${totalKB} KB</div>
-    <div class="summary-pill"><span>RGB:</span>${rgb}</div>
-    <div class="summary-pill"><span>CMYK:</span>${cmyk}</div>
-  `;
+function parsePDFMetadata(bytes,file){
+  const text=new TextDecoder('latin1').decode(bytes);
+  const sizeKB=(file.size/1024).toFixed(2);
+  let software='Desconocido';
+  const cM=text.match(/\/Creator\s*\(([^)]+)\)/),pM=text.match(/\/Producer\s*\(([^)]+)\)/);
+  if(cM)software=cleanStr(cM[1]);else if(pM)software=cleanStr(pM[1]);
+  let colorProfile='RGB';
+  if(/\/DeviceCMYK|\/ICCBased.*CMYK|Separation|DeviceN/i.test(text))colorProfile='CMYK';
+  let width_cm=null,height_cm=null;
+  const mb=text.match(/\/MediaBox\s*\[\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\]/);
+  if(mb){width_cm=(((parseFloat(mb[3])-parseFloat(mb[1]))/72)*2.54).toFixed(2);height_cm=(((parseFloat(mb[4])-parseFloat(mb[2]))/72)*2.54).toFixed(2);}
+  let pages='—';const pg=text.match(/\/N\s+(\d+)|\/Count\s+(\d+)/);if(pg)pages=parseInt(pg[1]||pg[2]);
+  let version='—';const vM=text.match(/%PDF-(\d+\.\d+)/);if(vM)version=vM[1];
+  let created='—';const dM=text.match(/\/CreationDate\s*\(D:(\d{4})(\d{2})(\d{2})/);if(dM)created=`${dM[3]}/${dM[2]}/${dM[1]}`;
+  return{name:file.name,size:sizeKB,software,colorProfile,width_cm,height_cm,pages,version,created,error:false};
+}
 
-  grid.innerHTML = '';
-  analysisResults.forEach((r, i) => {
-    const card = document.createElement('div');
-    card.className = 'result-card';
-    card.style.animationDelay = (i * 0.08) + 's';
+function cleanStr(s){ return s.replace(/\\(\d{3})/g,(m,p)=>String.fromCharCode(parseInt(p,8))).replace(/[^\x20-\x7E]/g,'').trim().slice(0,80)||'Desconocido'; }
 
-    if (r.error) {
-      card.innerHTML = `
-        <div class="card-header">
-          <div class="card-icon">⚠️</div>
-          <div class="card-filename">${r.name}</div>
-        </div>
-        <div class="card-body">
-          <div class="data-row">
-            <div class="data-icon">❌</div>
-            <div><div class="data-label">Estado</div><div class="data-value" style="color:var(--coral)">Error al leer el archivo</div></div>
-          </div>
-        </div>`;
+/* ══════ RESULTS ══════ */
+function showResults(){
+  renderTopbar('results-topnav');
+  const grid=document.getElementById('cards-grid'),sub=document.getElementById('results-sub'),sum=document.getElementById('summary-bar');
+  const n=analysisResults.length;
+  sub.textContent=`${n} documento${n!==1?'s':''} analizados`;
+  const totalKB=analysisResults.reduce((a,r)=>a+parseFloat(r.size||0),0).toFixed(1);
+  const cmyk=analysisResults.filter(r=>r.colorProfile==='CMYK').length;
+  const rgb =analysisResults.filter(r=>r.colorProfile==='RGB').length;
+  sum.innerHTML=`<div class="summary-pill"><span>Total:</span>${n}</div><div class="summary-pill"><span>Peso:</span>${totalKB} KB</div><div class="summary-pill"><span>RGB:</span>${rgb}</div><div class="summary-pill"><span>CMYK:</span>${cmyk}</div>`;
+  grid.innerHTML='';
+  analysisResults.forEach((r,i)=>{
+    const card=document.createElement('div'); card.className='result-card'; card.style.animationDelay=(i*.08)+'s';
+    if(r.error){
+      card.innerHTML=`<div class="card-header"><div class="card-icon">⚠️</div><div class="card-filename">${r.name}</div></div><div class="card-body"><div class="data-row"><div class="data-icon">❌</div><div><div class="data-label">Estado</div><div class="data-value" style="color:var(--crimson)">Error al leer el archivo</div></div></div></div>`;
     } else {
-      const dimStr = r.width_cm && r.height_cm
-        ? `${r.width_cm} × ${r.height_cm} cm`
-        : 'No disponible';
-      const cpIcon = r.colorProfile === 'CMYK' ? '🖨️' : '🖥️';
-
-      card.innerHTML = `
-        <div class="card-header">
-          <div class="card-icon">📄</div>
-          <div class="card-filename">${r.name}</div>
-          <span class="card-badge">PDF ${r.version}</span>
-        </div>
+      const dim=r.width_cm&&r.height_cm?`${r.width_cm} × ${r.height_cm} cm`:'No disponible';
+      card.innerHTML=`
+        <div class="card-header"><div class="card-icon">📄</div><div class="card-filename">${r.name}</div><span class="card-badge">PDF ${r.version}</span></div>
         <div class="card-body">
-          <div class="data-row">
-            <div class="data-icon">📐</div>
-            <div>
-              <div class="data-label">Medida del archivo</div>
-              <div class="data-value highlight">${dimStr}</div>
-            </div>
-          </div>
-          <div class="data-row">
-            <div class="data-icon">⚙️</div>
-            <div>
-              <div class="data-label">Software creador</div>
-              <div class="data-value">${r.software}</div>
-            </div>
-          </div>
-          <div class="data-row">
-            <div class="data-icon">${cpIcon}</div>
-            <div>
-              <div class="data-label">Perfil de color</div>
-              <div class="data-value">
-                <span class="color-swatch">
-                  <span class="swatch-dot ${r.colorProfile.toLowerCase()}"></span>
-                  ${r.colorProfile}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="data-row">
-            <div class="data-icon">💾</div>
-            <div>
-              <div class="data-label">Peso del archivo</div>
-              <div class="data-value highlight">${r.size} KB</div>
-            </div>
-          </div>
-          <div class="data-row">
-            <div class="data-icon">📑</div>
-            <div>
-              <div class="data-label">Páginas / Fecha creación</div>
-              <div class="data-value">${r.pages} ${r.pages !== '—' ? 'pág.' : ''} &nbsp;·&nbsp; ${r.created}</div>
-            </div>
-          </div>
-        </div>
-      `;
+          <div class="data-row"><div class="data-icon">📐</div><div><div class="data-label">Medida del archivo</div><div class="data-value highlight">${dim}</div></div></div>
+          <div class="data-row"><div class="data-icon">⚙️</div><div><div class="data-label">Software creador</div><div class="data-value">${r.software}</div></div></div>
+          <div class="data-row"><div class="data-icon">${r.colorProfile==='CMYK'?'🖨️':'🖥️'}</div><div><div class="data-label">Perfil de color</div><div class="data-value"><span class="color-swatch"><span class="swatch-dot ${r.colorProfile.toLowerCase()}"></span>${r.colorProfile}</span></div></div></div>
+          <div class="data-row"><div class="data-icon">💾</div><div><div class="data-label">Peso del archivo</div><div class="data-value highlight">${r.size} KB</div></div></div>
+          <div class="data-row"><div class="data-icon">📑</div><div><div class="data-label">Páginas / Fecha creación</div><div class="data-value">${r.pages}${r.pages!=='—'?' pág.':''} · ${r.created}</div></div></div>
+        </div>`;
     }
     grid.appendChild(card);
   });
-
   showScreen('screen-results');
 }
 
-/* ── Allow Enter key on auth inputs ── */
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  const active = document.querySelector('.screen.active');
-  if (!active || active.id !== 'screen-auth') return;
-  const loginVisible = document.getElementById('form-login').style.display !== 'none';
+/* ══════ PROFILE ══════ */
+async function goToProfile(){
+  if(!currentUser||currentUser.isGuest){ toast('El perfil no está disponible en modo invitado.'); return; }
+  renderTopbar('profile-topnav');
+  document.getElementById('prof-avatar').textContent = initials(currentUser.name);
+  document.getElementById('prof-name').textContent   = currentUser.name;
+  document.getElementById('prof-email').textContent  = currentUser.email;
+  await refreshProfileStats();
+  switchProfileTab('cuenta');
+  showScreen('screen-profile');
+}
+window._goToProfile = goToProfile;
+
+async function refreshProfileStats(){
+  if(!currentUser?.uid) return;
+  const snap = await getDocs(collection(fdb,'users',currentUser.uid,'docs'));
+  const files = snap.docs.map(d=>d.data());
+  document.getElementById('stat-files').textContent = files.length;
+  document.getElementById('stat-kb').textContent    = files.reduce((a,f)=>a+parseFloat(f.size||0),0).toFixed(1);
+}
+
+function switchProfileTab(tab){
+  document.getElementById('pmenu-cuenta').classList.toggle('active',   tab==='cuenta');
+  document.getElementById('pmenu-archivos').classList.toggle('active', tab==='archivos');
+  const c=document.getElementById('profile-content'); c.innerHTML='';
+  if(tab==='cuenta')   buildPanelCuenta(c);
+  if(tab==='archivos') buildPanelArchivos(c);
+}
+window.switchProfileTab = switchProfileTab;
+
+/* ── Panel: Cuenta ── */
+function buildPanelCuenta(container){
+  container.innerHTML=`
+    <div class="profile-panel">
+      <div class="panel-header"><span class="panel-title">Información personal</span></div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="form-label">Nombre completo</label>
+          <div class="field-row">
+            <input class="form-input" id="field-name" type="text" value="${currentUser.name}">
+            <button class="btn-field" onclick="window._saveName()">Guardar</button>
+          </div>
+          <p class="section-msg" id="name-msg"></p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input class="form-input" type="email" value="${currentUser.email}" disabled>
+          <p class="section-msg">El correo no puede modificarse.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Miembro desde</label>
+          <input class="form-input" type="text" value="${fmtDate(currentUser.createdAt)}" disabled>
+        </div>
+      </div>
+    </div>
+    <div class="profile-panel">
+      <div class="panel-header"><span class="panel-title">Cambiar contraseña</span></div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="form-label">Contraseña actual</label>
+          <input class="form-input" type="password" id="pass-cur" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nueva contraseña</label>
+          <input class="form-input" type="password" id="pass-new" placeholder="Mínimo 6 caracteres" oninput="checkPassStrength(this.value,'b')">
+          <div class="pass-strength"><div class="ps-bar" id="psb1"></div><div class="ps-bar" id="psb2"></div><div class="ps-bar" id="psb3"></div></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar nueva contraseña</label>
+          <input class="form-input" type="password" id="pass-cf" placeholder="••••••••">
+        </div>
+        <p class="section-msg" id="pass-msg"></p>
+        <button class="btn-save" onclick="window._changePassword()" style="margin-top:.6rem">Actualizar contraseña</button>
+      </div>
+    </div>
+    <div class="profile-panel">
+      <div class="panel-header"><span class="panel-title" style="color:var(--crimson)">⚠️ Zona peligrosa</span></div>
+      <div class="panel-body">
+        <p style="font-size:.87rem;color:var(--ash);margin-bottom:1rem">Eliminar tu cuenta borrará permanentemente todos tus datos e historial. Esta acción no se puede deshacer.</p>
+        <button class="btn-field" style="color:var(--crimson);border-color:rgba(232,55,42,.4)" onclick="window._deleteAccount()">Eliminar mi cuenta</button>
+      </div>
+    </div>`;
+}
+
+window._saveName = async function(){
+  const val=document.getElementById('field-name').value.trim();
+  const msg=document.getElementById('name-msg');
+  if(!val){msg.textContent='El nombre no puede estar vacío.';msg.className='section-msg err';return;}
+  await setDoc(doc(fdb,'users',currentUser.uid),{name:val},{merge:true});
+  await updateProfile(auth.currentUser,{displayName:val});
+  currentUser.name=val;
+  document.getElementById('prof-name').textContent=val;
+  document.getElementById('prof-avatar').textContent=initials(val);
+  renderTopbar('profile-topnav');
+  msg.textContent='✓ Nombre actualizado correctamente.'; msg.className='section-msg ok';
+  toast('Nombre guardado.','success');
+};
+
+window._changePassword = async function(){
+  const cur=document.getElementById('pass-cur').value;
+  const nw =document.getElementById('pass-new').value;
+  const cf =document.getElementById('pass-cf').value;
+  const msg=document.getElementById('pass-msg');
+  if(nw.length<6){msg.textContent='La nueva contraseña debe tener al menos 6 caracteres.';msg.className='section-msg err';return;}
+  if(nw!==cf){msg.textContent='Las contraseñas no coinciden.';msg.className='section-msg err';return;}
+  try{
+    const cred=EmailAuthProvider.credential(currentUser.email,cur);
+    await reauthenticateWithCredential(auth.currentUser,cred);
+    await updatePassword(auth.currentUser,nw);
+    document.getElementById('pass-cur').value='';
+    document.getElementById('pass-new').value='';
+    document.getElementById('pass-cf').value='';
+    msg.textContent='✓ Contraseña actualizada correctamente.'; msg.className='section-msg ok';
+    toast('Contraseña actualizada.','success');
+  } catch(e){
+    msg.textContent = e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'
+      ? 'La contraseña actual es incorrecta.' : 'Error al actualizar. Intenta de nuevo.';
+    msg.className='section-msg err';
+  }
+};
+
+window._deleteAccount = async function(){
+  if(!confirm('¿Estás seguro? Todos tus datos serán eliminados permanentemente.')) return;
+  try{
+    // Borrar subcolección de docs
+    const snap=await getDocs(collection(fdb,'users',currentUser.uid,'docs'));
+    for(const d of snap.docs) await deleteDoc(d.ref);
+    await deleteDoc(doc(fdb,'users',currentUser.uid));
+    await fbDeleteUser(auth.currentUser);
+    toast('Cuenta eliminada.');
+    logout();
+  } catch(e){
+    toast('Vuelve a iniciar sesión antes de eliminar tu cuenta.','error');
+  }
+};
+
+/* ── Panel: Archivos ── */
+async function buildPanelArchivos(container){
+  container.innerHTML=`<div class="profile-panel"><div class="panel-header"><span class="panel-title">Historial de archivos</span></div><div class="panel-body" style="text-align:center;padding:2rem"><span style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash)">Cargando historial…</span></div></div>`;
+  const snap=await getDocs(query(collection(fdb,'users',currentUser.uid,'docs'),orderBy('analyzedAt','desc')));
+  const files=snap.docs.map(d=>({id:d.id,...d.data()}));
+  container.innerHTML=`
+    <div class="profile-panel">
+      <div class="panel-header">
+        <span class="panel-title">Historial de archivos</span>
+        <span class="panel-badge">${files.length} archivo${files.length!==1?'s':''}</span>
+      </div>
+      <div class="panel-body">
+        ${files.length===0?`
+          <div class="history-empty"><div class="history-empty-icon">📂</div><p class="history-empty-msg">Aún no has analizado ningún archivo</p></div>
+        `:`
+        <div class="history-filters">
+          <input class="filter-input" id="hist-q" type="text" placeholder="🔍 Buscar por nombre..." oninput="window._filterHist()">
+          <select class="filter-select" id="hist-col" onchange="window._filterHist()">
+            <option value="">Todos los perfiles</option>
+            <option value="rgb">RGB</option>
+            <option value="cmyk">CMYK</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="history-table">
+            <thead><tr><th>Archivo</th><th>Dimensiones</th><th>Software</th><th>Color</th><th>Peso</th><th>Analizado</th><th></th></tr></thead>
+            <tbody id="hist-body"></tbody>
+          </table>
+        </div>`}
+      </div>
+    </div>`;
+  if(files.length) renderHistRows(files);
+}
+
+function renderHistRows(files){
+  const tbody=document.getElementById('hist-body'); if(!tbody) return;
+  tbody.innerHTML='';
+  files.forEach(f=>{
+    const dim=f.width_cm&&f.height_cm?`${f.width_cm}×${f.height_cm}cm`:'—';
+    const tr=document.createElement('tr');
+    tr.dataset.name=(f.name||'').toLowerCase();
+    tr.dataset.col=(f.colorProfile||'').toLowerCase();
+    tr.innerHTML=`
+      <td class="htd-name" title="${f.name}">📄 ${f.name.length>26?f.name.slice(0,24)+'…':f.name}</td>
+      <td class="htd-mono">${dim}</td>
+      <td style="font-size:.8rem;max-width:130px">${(f.software||'—').slice(0,28)}</td>
+      <td><span class="htd-badge ${(f.colorProfile||'').toLowerCase()}">${f.colorProfile||'—'}</span></td>
+      <td class="htd-mono">${f.size} KB</td>
+      <td class="htd-mono">${fmtDate(f.analyzedAt)}</td>
+      <td><button class="htd-action" onclick="window._delHistFile('${f.id}')" title="Eliminar">🗑</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+window._filterHist = function(){
+  const q=(document.getElementById('hist-q').value||'').toLowerCase();
+  const col=(document.getElementById('hist-col').value||'').toLowerCase();
+  document.querySelectorAll('#hist-body tr').forEach(tr=>{
+    tr.style.display=(tr.dataset.name.includes(q)&&(!col||tr.dataset.col===col))?'':'none';
+  });
+};
+
+window._delHistFile = async function(id){
+  if(!confirm('¿Eliminar este archivo del historial?')) return;
+  await deleteDoc(doc(fdb,'users',currentUser.uid,'docs',id));
+  await refreshProfileStats();
+  buildPanelArchivos(document.getElementById('profile-content'));
+  toast('Archivo eliminado del historial.');
+};
+
+/* ── Persist session on reload ── */
+onAuthStateChanged(auth, async user => {
+  if(user && !currentUser){
+    const snap = await getDoc(doc(fdb,'users',user.uid));
+    const data = snap.exists() ? snap.data() : {};
+    currentUser = { uid:user.uid, name:data.name||user.displayName||user.email, email:user.email, isGuest:false, createdAt:data.createdAt };
+    afterLogin();
+  }
+});
+
+/* ── Enter key in auth ── */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  const active=document.querySelector('.screen.active');
+  if(!active||active.id!=='screen-auth') return;
+  const loginVisible=document.getElementById('form-login').style.display!=='none';
   loginVisible ? handleLogin() : handleRegister();
 });
 </script>
