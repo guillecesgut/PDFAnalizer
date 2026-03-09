@@ -143,6 +143,11 @@
   .btn-guest { width: 100%; padding: .85rem; background: transparent; border: 1px solid rgba(232,55,42,.25); border-radius: 3px; cursor: pointer; font-family: 'Instrument Sans', sans-serif; font-size: .85rem; color: var(--ash); letter-spacing: .06em; transition: all .2s; }
   .btn-guest:hover { border-color: var(--crimson); color: var(--crimson); background: rgba(232,55,42,.05); }
   .auth-error { background: rgba(232,55,42,.08); border: 1px solid rgba(232,55,42,.3); border-radius: 3px; padding: .7rem 1rem; font-size: .82rem; color: var(--crimson); margin-bottom: 1rem; display: none; }
+  .auth-success { background: rgba(39,174,96,.08); border: 1px solid rgba(39,174,96,.3); border-radius: 3px; padding: .7rem 1rem; font-size: .82rem; color: #1e8449; margin-bottom: 1rem; display: none; }
+  .forgot-link { display: block; text-align: right; margin-top: .5rem; font-size: .78rem; color: var(--ash); cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: .04em; transition: color .2s; }
+  .forgot-link:hover { color: var(--crimson); }
+  .btn-back-link { background: none; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--ash); letter-spacing: .06em; display: flex; align-items: center; gap: .4rem; margin-bottom: 1.5rem; padding: 0; transition: color .2s; }
+  .btn-back-link:hover { color: var(--crimson); }
   .pass-strength { margin-top: .4rem; display: flex; gap: .3rem; }
   .ps-bar { height: 3px; flex: 1; border-radius: 2px; background: rgba(232,55,42,.12); transition: background .3s; }
   .ps-bar.weak   { background: var(--crimson); }
@@ -305,6 +310,7 @@
         <button class="tab" onclick="switchTab('register')">Crear cuenta</button>
       </div>
       <div id="auth-error" class="auth-error"></div>
+      <div id="auth-success" class="auth-success"></div>
 
       <div id="form-login">
         <div class="form-group">
@@ -316,6 +322,7 @@
           <input class="form-input" type="password" id="login-pass" placeholder="••••••••">
         </div>
         <button class="btn-main" onclick="handleLogin()">Ingresar →</button>
+        <span class="forgot-link" onclick="showResetForm()">¿Olvidaste tu contraseña?</span>
       </div>
 
       <div id="form-register" style="display:none">
@@ -341,6 +348,16 @@
 
       <div class="divider">o continúa como</div>
       <button class="btn-guest" onclick="loginAsGuest()">👤 Modo Invitado — sin registro</button>
+
+      <!-- ── RESET PASSWORD FORM ── -->
+      <div id="form-reset" style="display:none">
+        <button class="btn-back-link" onclick="hideResetForm()">← Volver al inicio de sesión</button>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico de tu cuenta</label>
+          <input class="form-input" type="email" id="reset-email" placeholder="usuario@ejemplo.com">
+        </div>
+        <button class="btn-main" onclick="handlePasswordReset()">Enviar correo de recuperación →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -432,7 +449,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   signOut, updateProfile, updatePassword, deleteUser as fbDeleteUser,
-  reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged
+  reauthenticateWithCredential, EmailAuthProvider, onAuthStateChanged,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, collection,
@@ -512,7 +530,46 @@ function switchTab(tab){
 }
 window.switchTab = switchTab;
 
-function authErr(m){ const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; }
+function authErr(m){ const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; const s=document.getElementById('auth-success'); if(s) s.style.display='none'; }
+function authOk(m){ const s=document.getElementById('auth-success'); s.textContent=m; s.style.display='block'; document.getElementById('auth-error').style.display='none'; }
+
+function showResetForm(){
+  document.getElementById('form-login').style.display    = 'none';
+  document.getElementById('form-register').style.display = 'none';
+  document.getElementById('form-reset').style.display    = '';
+  document.querySelector('.tab-row').style.display       = 'none';
+  document.querySelector('.divider').style.display       = 'none';
+  document.querySelector('.btn-guest').style.display     = 'none';
+  document.getElementById('auth-error').style.display   = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+  document.getElementById('reset-email').value           = document.getElementById('login-email').value || '';
+}
+window.showResetForm = showResetForm;
+
+function hideResetForm(){
+  document.getElementById('form-reset').style.display    = 'none';
+  document.getElementById('form-login').style.display    = '';
+  document.querySelector('.tab-row').style.display       = '';
+  document.querySelector('.divider').style.display       = '';
+  document.querySelector('.btn-guest').style.display     = '';
+  document.getElementById('auth-error').style.display   = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+}
+window.hideResetForm = hideResetForm;
+
+async function handlePasswordReset(){
+  const email = document.getElementById('reset-email').value.trim();
+  if(!email) return authErr('Ingresa tu correo electrónico.');
+  if(!/\S+@\S+\.\S+/.test(email)) return authErr('Correo electrónico inválido.');
+  try {
+    await sendPasswordResetEmail(auth, email);
+    authOk(`✓ Correo enviado a ${email}. Revisa tu bandeja de entrada (y spam).`);
+    document.getElementById('reset-email').value = '';
+  } catch(e) {
+    authErr(mapFirebaseError(e.code));
+  }
+}
+window.handlePasswordReset = handlePasswordReset;
 
 function mapFirebaseError(code){
   const map={
