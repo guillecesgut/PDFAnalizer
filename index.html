@@ -440,7 +440,7 @@
         <p class="page-sub" id="results-sub">Información extraída de tus documentos</p>
       </div>
       <div style="display:flex;gap:.7rem;flex-wrap:wrap">
-        <button class="nav-btn" onclick="window._goToTemplates()">📐 Plantillas</button>
+        <button class="nav-btn" id="btn-tpl-results" onclick="window._goToTemplates()" style="display:none">⚙️ Plantillas</button>
         <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
       </div>
     </div>
@@ -541,10 +541,12 @@
 /* ══════════════════════════════════════════════════════
    FIREBASE — Authentication + Firestore
    Colecciones:
-     users/{uid}  → { name, email, createdAt }
-     files/{uid}/docs/{docId} → { name, size, software,
-       colorProfile, width_cm, height_cm, pages, version,
-       created, analyzedAt }
+     users/{uid}        → { name, email, createdAt }
+     users/{uid}/docs   → historial de PDFs analizados
+     templates/{id}     → plantillas globales (solo admin escribe)
+   Roles:
+     ADMIN_UID          → gestión total de plantillas
+     otros usuarios     → solo analizan y ven veredicto
 ══════════════════════════════════════════════════════ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -570,6 +572,10 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const fdb  = getFirestore(app);
+
+/* ══════ ROLES ══════ */
+const ADMIN_UID = 'NOPpYqy8tnTVg1VYhnDYN2w5eqU2';
+const isAdmin = () => currentUser?.uid === ADMIN_UID;
 
 /* ══════ STATE ══════ */
 let currentUser    = null; // { uid, name, email, isGuest, createdAt }
@@ -604,10 +610,14 @@ function renderTopbar(id){
   if(currentUser.isGuest){
     el.innerHTML=`<span class="guest-badge">Modo Invitado</span><button class="nav-btn" onclick="window._logout()">Salir</button>`;
   } else {
+    const adminBtn = isAdmin()
+      ? `<button class="nav-btn" style="font-size:.78rem;background:rgba(232,55,42,.08);border-color:rgba(232,55,42,.3)" onclick="window._goToTemplates()">⚙️ Plantillas</button>`
+      : '';
     el.innerHTML=`
       <div class="topbar-user">
-        <button class="nav-btn" style="font-size:.78rem" onclick="window._goToTemplates()">📐 Plantillas</button>
+        ${adminBtn}
         <span class="topbar-name">${currentUser.name.split(' ')[0]}</span>
+        ${isAdmin() ? '<span style="font-family:DM Mono,monospace;font-size:.62rem;background:var(--crimson);color:#fff;padding:.2rem .6rem;border-radius:50px;letter-spacing:.06em">ADMIN</span>' : ''}
         <div class="user-avatar-btn" title="Mi perfil" onclick="window._goToProfile()">${initials(currentUser.name)}</div>
       </div>
       <button class="nav-btn" onclick="window._logout()">Salir</button>`;
@@ -855,7 +865,8 @@ function cleanStr(s){ return s.replace(/\\(\d{3})/g,(m,p)=>String.fromCharCode(p
 
 /* ══════ TEMPLATES ══════ */
 async function goToTemplates(){
-  if(!currentUser||currentUser.isGuest){ toast('Las plantillas requieren una cuenta registrada.'); return; }
+  if(!currentUser || currentUser.isGuest){ toast('Acceso no permitido.'); return; }
+  if(!isAdmin()){ toast('Solo el administrador puede gestionar plantillas.'); return; }
   renderTopbar('templates-topnav');
   showScreen('screen-templates');
   await renderTemplates();
@@ -863,13 +874,15 @@ async function goToTemplates(){
 window._goToTemplates = goToTemplates;
 
 async function loadTemplates(){
-  if(!currentUser?.uid) return [];
-  const snap = await getDocs(query(collection(fdb,'users',currentUser.uid,'templates'),orderBy('createdAt','asc')));
-  return snap.docs.map(d=>({id:d.id,...d.data()}));
+  // Plantillas globales — cualquier usuario puede leerlas para la comparación
+  try {
+    const snap = await getDocs(query(collection(fdb,'templates'), orderBy('createdAt','asc')));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){ return []; }
 }
 
 async function renderTemplates(){
-  const grid = document.getElementById('tpl-grid');
+  const grid  = document.getElementById('tpl-grid');
   const empty = document.getElementById('tpl-empty');
   if(!grid) return;
   grid.innerHTML = `<div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash);padding:1rem">Cargando…</div>`;
@@ -902,13 +915,23 @@ function buildTplCard(t){
   return card;
 }
 
-function openTplForm(){ document.getElementById('tpl-form-wrap').classList.add('open'); document.getElementById('tpl-form-title').textContent='Nueva plantilla'; document.getElementById('tpl-edit-id').value=''; document.getElementById('tpl-name').value=''; document.getElementById('tpl-w').value=''; document.getElementById('tpl-h').value=''; document.getElementById('tpl-tol').value='0.5'; document.getElementById('tpl-color').value='RGB'; }
+function openTplForm(){
+  document.getElementById('tpl-form-wrap').classList.add('open');
+  document.getElementById('tpl-form-title').textContent='Nueva plantilla';
+  document.getElementById('tpl-edit-id').value='';
+  document.getElementById('tpl-name').value='';
+  document.getElementById('tpl-w').value='';
+  document.getElementById('tpl-h').value='';
+  document.getElementById('tpl-tol').value='0.5';
+  document.getElementById('tpl-color').value='RGB';
+}
 window._openTplForm = openTplForm;
 
 function closeTplForm(){ document.getElementById('tpl-form-wrap').classList.remove('open'); }
 window._closeTplForm = closeTplForm;
 
 window._editTpl = async function(id){
+  if(!isAdmin()) return;
   const tpls = await loadTemplates();
   const t = tpls.find(x=>x.id===id); if(!t) return;
   document.getElementById('tpl-form-title').textContent = 'Editar plantilla';
@@ -923,6 +946,7 @@ window._editTpl = async function(id){
 };
 
 window._saveTpl = async function(){
+  if(!isAdmin()){ toast('Acción no permitida.'); return; }
   const name  = document.getElementById('tpl-name').value.trim();
   const w     = parseFloat(document.getElementById('tpl-w').value);
   const h     = parseFloat(document.getElementById('tpl-h').value);
@@ -931,14 +955,13 @@ window._saveTpl = async function(){
   const editId= document.getElementById('tpl-edit-id').value;
   if(!name) return toast('El nombre de la plantilla es obligatorio.');
   if(isNaN(w)||isNaN(h)||w<=0||h<=0) return toast('Ingresa dimensiones válidas mayores a 0.');
-  const data = { name, width_cm:w, height_cm:h, tolerance:tol, colorProfile:color, createdAt: editId ? undefined : new Date().toISOString() };
-  if(!data.createdAt) delete data.createdAt;
+  const data = { name, width_cm:w, height_cm:h, tolerance:tol, colorProfile:color };
   if(editId){
-    await setDoc(doc(fdb,'users',currentUser.uid,'templates',editId), data, {merge:true});
+    await setDoc(doc(fdb,'templates',editId), data, {merge:true});
     toast('Plantilla actualizada.','success');
   } else {
     data.createdAt = new Date().toISOString();
-    await addDoc(collection(fdb,'users',currentUser.uid,'templates'), data);
+    await addDoc(collection(fdb,'templates'), data);
     toast('Plantilla creada.','success');
   }
   closeTplForm();
@@ -946,8 +969,9 @@ window._saveTpl = async function(){
 };
 
 window._deleteTpl = async function(id){
-  if(!confirm('¿Eliminar esta plantilla?')) return;
-  await deleteDoc(doc(fdb,'users',currentUser.uid,'templates',id));
+  if(!isAdmin()){ toast('Acción no permitida.'); return; }
+  if(!confirm('¿Eliminar esta plantilla? Todos los usuarios dejarán de compararse contra ella.')) return;
+  await deleteDoc(doc(fdb,'templates',id));
   toast('Plantilla eliminada.');
   await renderTemplates();
 };
@@ -989,6 +1013,9 @@ function compareWithTemplates(result, templates){
 /* ══════ RESULTS (updated with verdicts) ══════ */
 function showResults(){
   renderTopbar('results-topnav');
+  // Mostrar botón Plantillas solo al admin
+  const btnTpl = document.getElementById('btn-tpl-results');
+  if(btnTpl) btnTpl.style.display = isAdmin() ? '' : 'none';
   const grid=document.getElementById('cards-grid'),sub=document.getElementById('results-sub'),sum=document.getElementById('summary-bar');
   const n=analysisResults.length;
   sub.textContent=`${n} documento${n!==1?'s':''} analizados`;
