@@ -288,7 +288,22 @@
   .tpl-btn:hover { background: var(--crimson); color: #fff; border-color: var(--crimson); }
   .tpl-btn.danger:hover { background: #c0392b; border-color: #c0392b; }
 
-  /* ─── NEW TEMPLATE FORM ─── */
+  .tpl-cat-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+  .tpl-cat-chip { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .65rem; border-radius: 50px; font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .05em; border: 1px solid rgba(232,55,42,.22); background: rgba(232,55,42,.07); color: var(--crimson); }
+
+  /* Category checkboxes in template form */
+  .cat-check-grid { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .4rem; }
+  .cat-check-item { display: flex; align-items: center; gap: 0; }
+  .cat-check-item input[type=checkbox] { display: none; }
+  .cat-check-label { display: inline-flex; align-items: center; gap: .4rem; padding: .38rem .85rem; border-radius: 50px; border: 1px solid rgba(232,55,42,.22); background: rgba(255,255,255,.7); font-size: .78rem; cursor: pointer; transition: all .18s; user-select: none; }
+  .cat-check-label:hover { border-color: var(--crimson); background: rgba(232,55,42,.06); }
+  .cat-check-item input:checked + .cat-check-label { background: rgba(232,55,42,.12); border-color: var(--crimson); color: var(--crimson); font-weight: 600; }
+
+  /* Template filter tabs */
+  .tpl-filter-bar { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+  .tpl-filter-tab { padding: .38rem 1rem; border-radius: 50px; border: 1px solid rgba(232,55,42,.2); background: none; font-family: 'Instrument Sans', sans-serif; font-size: .78rem; cursor: pointer; color: var(--ash); transition: all .18s; }
+  .tpl-filter-tab:hover { border-color: var(--crimson); color: var(--crimson); }
+  .tpl-filter-tab.active { background: var(--crimson); border-color: var(--crimson); color: #fff; font-weight: 600; }
   .tpl-form-wrap { background: #fff; border: 1px solid rgba(232,55,42,.15); border-radius: 6px; padding: 1.8rem; margin-bottom: 2rem; box-shadow: 0 4px 16px rgba(200,60,50,.06); display: none; }
   .tpl-form-wrap.open { display: block; animation: slideUp .3s ease both; }
   .tpl-form-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.2rem; }
@@ -580,12 +595,21 @@
           <label class="form-label">Tolerancia dimensiones (±cm)</label>
           <input class="form-input" type="number" id="tpl-tol" value="0.5" step="0.1" min="0">
         </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Categorías aplicables <span style="color:var(--ash);font-weight:400">(selecciona una o más)</span></label>
+          <div class="cat-check-grid" id="tpl-cat-checks">
+            <span style="font-family:DM Mono,monospace;font-size:.72rem;color:var(--ash)">Cargando categorías…</span>
+          </div>
+        </div>
       </div>
       <div class="tpl-form-actions">
         <button class="tpl-btn" onclick="window._closeTplForm()">Cancelar</button>
         <button class="btn-save" onclick="window._saveTpl()">Guardar plantilla</button>
       </div>
     </div>
+
+    <!-- Filter tabs -->
+    <div class="tpl-filter-bar" id="tpl-filter-bar"></div>
 
     <!-- Lista de plantillas -->
     <div id="tpl-empty" style="display:none">
@@ -915,10 +939,18 @@ async function analyzeFiles(){
   pf.style.width='100%'; pl.textContent='¡Análisis completo!';
   await new Promise(r=>setTimeout(r,500));
 
-  // ── Comparar contra plantillas (usuarios registrados) ──
+  // ── Comparar contra plantillas filtradas por categoría ──
   let templates = [];
   if(currentUser && !currentUser.isGuest){
-    try { templates = await loadTemplates(); } catch(e){}
+    try {
+      const allTpls = await loadTemplates();
+      // Solo plantillas asignadas a la categoría seleccionada
+      if(selectedCategory){
+        templates = allTpls.filter(t => (t.categoryIds||[]).includes(selectedCategory.id));
+      } else {
+        templates = allTpls;
+      }
+    } catch(e){}
   }
   analysisResults.forEach(r => {
     if(r.error) return;
@@ -1128,9 +1160,12 @@ window._deleteCat = async function(id){
 };
 
 /* ══════ TEMPLATES ══════ */
+let _tplFilterCatId = 'all'; // active filter tab
+
 async function goToTemplates(){
   if(!currentUser || currentUser.isGuest){ toast('Acceso no permitido.'); return; }
   if(!isAdmin()){ toast('Solo el administrador puede gestionar plantillas.'); return; }
+  _tplFilterCatId = 'all';
   renderTopbar('templates-topnav');
   showScreen('screen-templates');
   await renderTemplates();
@@ -1138,7 +1173,6 @@ async function goToTemplates(){
 window._goToTemplates = goToTemplates;
 
 async function loadTemplates(){
-  // Plantillas globales — cualquier usuario puede leerlas para la comparación
   try {
     const snap = await getDocs(query(collection(fdb,'templates'), orderBy('createdAt','asc')));
     return snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -1150,18 +1184,54 @@ async function renderTemplates(){
   const empty = document.getElementById('tpl-empty');
   if(!grid) return;
   grid.innerHTML = `<div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash);padding:1rem">Cargando…</div>`;
-  const tpls = await loadTemplates();
+
+  const [tpls, cats] = await Promise.all([loadTemplates(), loadCategories()]);
+
+  // ── Filter tabs ──
+  const filterBar = document.getElementById('tpl-filter-bar');
+  if(filterBar){
+    const tabs = [{ id:'all', name:'Todas', icon:'📋' }, ...cats];
+    filterBar.innerHTML = tabs.map(c =>
+      `<button class="tpl-filter-tab${_tplFilterCatId===c.id?' active':''}"
+        onclick="window._setTplFilter('${c.id}')">${c.icon||''} ${c.name}</button>`
+    ).join('');
+  }
+
+  // ── Filter templates ──
+  const filtered = _tplFilterCatId === 'all'
+    ? tpls
+    : tpls.filter(t => (t.categoryIds||[]).includes(_tplFilterCatId));
+
   grid.innerHTML = '';
-  if(!tpls.length){ empty.style.display='block'; return; }
+  if(!filtered.length){
+    empty.style.display='block';
+    empty.querySelector('.history-empty-msg').textContent =
+      _tplFilterCatId === 'all'
+        ? 'Aún no tienes plantillas — crea la primera arriba'
+        : 'No hay plantillas para esta categoría todavía';
+    return;
+  }
   empty.style.display = 'none';
-  tpls.forEach(t => grid.appendChild(buildTplCard(t)));
+  filtered.forEach(t => grid.appendChild(buildTplCard(t, cats)));
 }
 
-function buildTplCard(t){
+window._setTplFilter = async function(catId){
+  _tplFilterCatId = catId;
+  await renderTemplates();
+};
+
+function buildTplCard(t, cats=[]){
   const card = document.createElement('div');
   card.className = 'tpl-card';
   const dimStr = t.width_cm && t.height_cm ? `${t.width_cm} × ${t.height_cm} cm` : 'No definidas';
   const tolStr = t.tolerance != null ? `±${t.tolerance} cm` : '±0.5 cm';
+
+  // Category chips
+  const assignedCats = cats.filter(c => (t.categoryIds||[]).includes(c.id));
+  const chipsHtml = assignedCats.length
+    ? `<div class="tpl-cat-chips">${assignedCats.map(c=>`<span class="tpl-cat-chip">${c.icon||''} ${c.name}</span>`).join('')}</div>`
+    : `<div class="tpl-cat-chips"><span class="tpl-cat-chip" style="opacity:.5;font-style:italic">Sin categoría</span></div>`;
+
   card.innerHTML = `
     <div class="tpl-card-header">
       <span class="tpl-card-name">📐 ${t.name}</span>
@@ -1171,6 +1241,7 @@ function buildTplCard(t){
       <div class="tpl-spec"><span class="tpl-spec-icon">📏</span><span class="tpl-spec-label">Dimensiones</span><span class="tpl-spec-val">${dimStr}</span></div>
       <div class="tpl-spec"><span class="tpl-spec-icon">🎯</span><span class="tpl-spec-label">Tolerancia</span><span class="tpl-spec-val">${tolStr}</span></div>
       <div class="tpl-spec"><span class="tpl-spec-icon">🎨</span><span class="tpl-spec-label">Color</span><span class="tpl-spec-val">${t.colorProfile==='cualquiera'?'Cualquiera':t.colorProfile}</span></div>
+      <div class="tpl-spec"><span class="tpl-spec-icon">🗂️</span><span class="tpl-spec-label">Categorías</span><span class="tpl-spec-val">${chipsHtml}</span></div>
     </div>
     <div class="tpl-actions">
       <button class="tpl-btn" onclick="window._editTpl('${t.id}')">✏️ Editar</button>
@@ -1179,7 +1250,26 @@ function buildTplCard(t){
   return card;
 }
 
-function openTplForm(){
+async function populateCatChecks(selectedIds=[]){
+  const container = document.getElementById('tpl-cat-checks');
+  if(!container) return;
+  const cats = await loadCategories();
+  if(!cats.length){
+    container.innerHTML = `<span style="font-family:DM Mono,monospace;font-size:.72rem;color:var(--ash)">No hay categorías creadas aún.</span>`;
+    return;
+  }
+  container.innerHTML = cats.map(c => `
+    <label class="cat-check-item">
+      <input type="checkbox" class="tpl-cat-cb" value="${c.id}" ${selectedIds.includes(c.id)?'checked':''}>
+      <span class="cat-check-label">${c.icon||''} ${c.name}</span>
+    </label>`).join('');
+}
+
+function getCheckedCatIds(){
+  return [...document.querySelectorAll('.tpl-cat-cb:checked')].map(cb=>cb.value);
+}
+
+async function openTplForm(){
   document.getElementById('tpl-form-wrap').classList.add('open');
   document.getElementById('tpl-form-title').textContent='Nueva plantilla';
   document.getElementById('tpl-edit-id').value='';
@@ -1188,6 +1278,7 @@ function openTplForm(){
   document.getElementById('tpl-h').value='';
   document.getElementById('tpl-tol').value='0.5';
   document.getElementById('tpl-color').value='RGB';
+  await populateCatChecks([]);
 }
 window._openTplForm = openTplForm;
 
@@ -1205,21 +1296,24 @@ window._editTpl = async function(id){
   document.getElementById('tpl-h').value        = t.height_cm||'';
   document.getElementById('tpl-tol').value      = t.tolerance!=null?t.tolerance:0.5;
   document.getElementById('tpl-color').value    = t.colorProfile||'RGB';
+  await populateCatChecks(t.categoryIds||[]);
   document.getElementById('tpl-form-wrap').classList.add('open');
   document.getElementById('tpl-form-wrap').scrollIntoView({behavior:'smooth'});
 };
 
 window._saveTpl = async function(){
   if(!isAdmin()){ toast('Acción no permitida.'); return; }
-  const name  = document.getElementById('tpl-name').value.trim();
-  const w     = parseFloat(document.getElementById('tpl-w').value);
-  const h     = parseFloat(document.getElementById('tpl-h').value);
-  const tol   = parseFloat(document.getElementById('tpl-tol').value)||0.5;
-  const color = document.getElementById('tpl-color').value;
-  const editId= document.getElementById('tpl-edit-id').value;
+  const name       = document.getElementById('tpl-name').value.trim();
+  const w          = parseFloat(document.getElementById('tpl-w').value);
+  const h          = parseFloat(document.getElementById('tpl-h').value);
+  const tol        = parseFloat(document.getElementById('tpl-tol').value)||0.5;
+  const color      = document.getElementById('tpl-color').value;
+  const editId     = document.getElementById('tpl-edit-id').value;
+  const categoryIds = getCheckedCatIds();
   if(!name) return toast('El nombre de la plantilla es obligatorio.');
   if(isNaN(w)||isNaN(h)||w<=0||h<=0) return toast('Ingresa dimensiones válidas mayores a 0.');
-  const data = { name, width_cm:w, height_cm:h, tolerance:tol, colorProfile:color };
+  if(!categoryIds.length) return toast('Selecciona al menos una categoría aplicable.');
+  const data = { name, width_cm:w, height_cm:h, tolerance:tol, colorProfile:color, categoryIds };
   if(editId){
     await setDoc(doc(fdb,'templates',editId), data, {merge:true});
     toast('Plantilla actualizada.','success');
@@ -1316,7 +1410,10 @@ function showResults(){
           <div class="verdict-badge ${r._verdict}">${icons[r._verdict]} ${labels[r._verdict]} — ${r._bestMatch||''}</div>
           <div class="verdict-match-list">${matchRows}</div>`;
       } else if(r._verdict==='no-tpl'){
-        verdictHtml = `<div class="verdict-badge no-tpl">📐 Sin plantillas para comparar</div>`;
+        const noTplMsg = selectedCategory
+          ? `📐 Sin plantillas para la categoría "${selectedCategory.name}"`
+          : `📐 Sin plantillas para comparar`;
+        verdictHtml = `<div class="verdict-badge no-tpl">${noTplMsg}</div>`;
       }
       card.innerHTML=`
         <div class="card-header"><div class="card-icon">📄</div><div class="card-filename">${r.name}</div><span class="card-badge">PDF ${r.version}</span></div>
