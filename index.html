@@ -311,6 +311,75 @@
   .verdict-match-pct.none { color: var(--crimson); }
   .guest-badge { font-family: 'DM Mono', monospace; font-size: .68rem; padding: .3rem .8rem; background: rgba(232,55,42,.1); border: 1px solid rgba(232,55,42,.25); border-radius: 50px; color: var(--crimson); letter-spacing: .06em; text-transform: uppercase; }
 
+  /* ─── CATEGORIES SCREEN ─── */
+  #screen-categories .page-container { max-width: 1100px; }
+  .cat-intro { text-align: center; margin-bottom: 3rem; animation: slideUp .5s ease both; }
+  .cat-intro .page-title { font-size: 2rem; margin-bottom: .5rem; }
+  .cat-intro .page-sub { font-size: 1rem; color: var(--ash); }
+
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.4rem; }
+
+  .cat-card {
+    position: relative; background: #fff;
+    border: 1px solid rgba(232,55,42,.13); border-radius: 10px;
+    padding: 2.2rem 1.5rem 1.8rem;
+    display: flex; flex-direction: column; align-items: center; gap: .8rem;
+    cursor: pointer; transition: transform .22s, box-shadow .22s, border-color .22s;
+    box-shadow: 0 4px 20px rgba(200,60,50,.07);
+    animation: cardIn .4s ease both;
+    text-align: center; overflow: hidden;
+  }
+  .cat-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(232,55,42,.05), transparent 60%);
+    opacity: 0; transition: opacity .22s;
+  }
+  .cat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(200,60,50,.16); border-color: rgba(232,55,42,.35); }
+  .cat-card:hover::before { opacity: 1; }
+  .cat-card:active { transform: translateY(-2px); }
+
+  .cat-card-icon { font-size: 2.8rem; line-height: 1; margin-bottom: .2rem; filter: drop-shadow(0 4px 8px rgba(200,60,50,.18)); transition: transform .22s; }
+  .cat-card:hover .cat-card-icon { transform: scale(1.12); }
+  .cat-card-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--bone); }
+  .cat-card-desc { font-family: 'DM Mono', monospace; font-size: .67rem; color: var(--ash); letter-spacing: .06em; line-height: 1.5; }
+  .cat-card-arrow { font-size: .85rem; color: var(--crimson); opacity: 0; transform: translateX(-6px); transition: all .22s; margin-top: .2rem; }
+  .cat-card:hover .cat-card-arrow { opacity: 1; transform: translateX(0); }
+
+  /* Admin controls on cat card */
+  .cat-card-admin { position: absolute; top: .6rem; right: .6rem; display: flex; gap: .3rem; opacity: 0; transition: opacity .2s; }
+  .cat-card:hover .cat-card-admin { opacity: 1; }
+  .cat-admin-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,.9); cursor: pointer; font-size: .75rem; display: flex; align-items: center; justify-content: center; transition: background .2s; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+  .cat-admin-btn:hover { background: var(--crimson); }
+
+  /* Add category card (admin only) */
+  .cat-card-add {
+    border: 2px dashed rgba(232,55,42,.25); background: rgba(255,248,247,.5);
+    color: var(--ash); box-shadow: none;
+  }
+  .cat-card-add:hover { border-color: var(--crimson); background: rgba(232,55,42,.04); box-shadow: 0 8px 24px rgba(200,60,50,.1); }
+  .cat-card-add .cat-card-icon { font-size: 2rem; opacity: .5; }
+  .cat-card-add .cat-card-name { font-size: .9rem; font-family: 'Instrument Sans', sans-serif; font-weight: 500; opacity: .7; }
+
+  /* Category form modal */
+  .cat-modal-overlay { position: fixed; inset: 0; background: rgba(61,26,24,.35); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; animation: fadeIn .2s ease both; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .cat-modal { background: #fff; border-radius: 10px; padding: 2.2rem; width: 100%; max-width: 440px; box-shadow: 0 24px 60px rgba(200,60,50,.2); animation: slideUp .3s ease both; }
+  .cat-modal-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .cat-modal-actions { display: flex; gap: .8rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .emoji-picker { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+  .emoji-opt { width: 38px; height: 38px; border: 1px solid rgba(232,55,42,.15); border-radius: 6px; background: none; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .emoji-opt:hover, .emoji-opt.selected { background: rgba(232,55,42,.1); border-color: var(--crimson); transform: scale(1.1); }
+
+  /* Upload screen: selected category breadcrumb */
+  .cat-breadcrumb { display: inline-flex; align-items: center; gap: .5rem; padding: .4rem 1rem .4rem .7rem; background: rgba(232,55,42,.08); border: 1px solid rgba(232,55,42,.2); border-radius: 50px; font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--crimson); letter-spacing: .05em; margin-bottom: 1.2rem; cursor: pointer; transition: background .2s; }
+  .cat-breadcrumb:hover { background: rgba(232,55,42,.14); }
+  .cat-breadcrumb-icon { font-size: 1rem; }
+
+  @media (max-width: 720px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .cat-card { padding: 1.6rem 1rem 1.4rem; }
+  }
+
   #toast { position: fixed; bottom: 2rem; right: 2rem; background: #fff; border: 1px solid rgba(232,55,42,.2); border-left: 4px solid var(--crimson); border-radius: 4px; padding: 1rem 1.5rem; font-size: .85rem; color: var(--bone); transform: translateY(120px); opacity: 0; transition: all .3s; z-index: 10000; max-width: 300px; box-shadow: 0 8px 24px rgba(200,60,50,.15); }
   #toast.show { transform: translateY(0); opacity: 1; }
   #toast.success { border-left-color: #27ae60; }
@@ -398,6 +467,23 @@
   </div>
 </div>
 
+<!-- ══════════════════════ CATEGORIES ══════════════════════ -->
+<div id="screen-categories" class="screen">
+  <div class="topbar">
+    <div class="logo"><span class="logo-dot"></span>PDFAnalizer</div>
+    <div class="topbar-nav" id="categories-topnav"></div>
+  </div>
+  <div class="page-container" id="cat-page-container">
+    <div class="cat-intro">
+      <h1 class="page-title">¿Qué tipo de documento vas a analizar?</h1>
+      <p class="page-sub">Selecciona la categoría del archivo PDF para continuar</p>
+    </div>
+    <div class="cat-grid" id="cat-grid">
+      <div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash);padding:1rem;grid-column:1/-1">Cargando categorías…</div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════ UPLOAD ══════════════════════ -->
 <div id="screen-upload" class="screen">
   <div class="topbar">
@@ -405,6 +491,7 @@
     <div class="topbar-nav" id="upload-topnav"></div>
   </div>
   <div class="page-container">
+    <div id="cat-breadcrumb-wrap"></div>
     <h1 class="page-title">Subir Documentos</h1>
     <p class="page-sub">Arrastra o selecciona archivos PDF para analizar</p>
     <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
@@ -441,7 +528,7 @@
       </div>
       <div style="display:flex;gap:.7rem;flex-wrap:wrap">
         <button class="nav-btn" id="btn-tpl-results" onclick="window._goToTemplates()" style="display:none">⚙️ Plantillas</button>
-        <button class="nav-btn" onclick="goToUpload()">+ Nuevo análisis</button>
+        <button class="nav-btn" onclick="goToUpload()">← Inicio</button>
       </div>
     </div>
     <div class="summary-bar" id="summary-bar"></div>
@@ -544,8 +631,9 @@
      users/{uid}        → { name, email, createdAt }
      users/{uid}/docs   → historial de PDFs analizados
      templates/{id}     → plantillas globales (solo admin escribe)
+     categories/{id}    → categorías globales (solo admin escribe)
    Roles:
-     ADMIN_UID          → gestión total de plantillas
+     ADMIN_UID          → gestión total de plantillas y categorías
      otros usuarios     → solo analizan y ven veredicto
 ══════════════════════════════════════════════════════ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -578,9 +666,10 @@ const ADMIN_UID = 'NOPpYqy8tnTVg1VYhnDYN2w5eqU2';
 const isAdmin = () => currentUser?.uid === ADMIN_UID;
 
 /* ══════ STATE ══════ */
-let currentUser    = null; // { uid, name, email, isGuest, createdAt }
-let selectedFiles  = [];
+let currentUser     = null; // { uid, name, email, isGuest, createdAt }
+let selectedFiles   = [];
 let analysisResults = [];
+let selectedCategory = null; // { id, name, icon, desc }
 
 /* ══════ UTILS ══════ */
 function showScreen(id){
@@ -737,9 +826,10 @@ function loginAsGuest(){ currentUser={uid:null,name:'Invitado',email:'',isGuest:
 window.loginAsGuest = loginAsGuest;
 
 function afterLogin(){
-  selectedFiles=[]; renderQueue();
-  renderTopbar('upload-topnav');
-  showScreen('screen-upload');
+  selectedFiles=[]; selectedCategory=null; renderQueue();
+  renderTopbar('categories-topnav');
+  showScreen('screen-categories');
+  loadAndRenderCategories();
 }
 
 async function logout(){
@@ -779,14 +869,36 @@ function renderQueue(){
 }
 
 function goToUpload(){
+  // If called from topbar logo or "Nuevo análisis" → go back to category selection
   selectedFiles=[]; renderQueue();
   document.getElementById('progress-wrap').style.display='none';
   document.getElementById('progress-fill').style.width='0%';
   document.getElementById('btn-analyze').disabled=true;
+  selectedCategory=null;
+  renderTopbar('categories-topnav');
+  showScreen('screen-categories');
+  loadAndRenderCategories();
+}
+window.goToUpload = goToUpload;
+
+function goToUploadWithCategory(cat){
+  selectedFiles=[]; renderQueue();
+  document.getElementById('progress-wrap').style.display='none';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('btn-analyze').disabled=true;
+  selectedCategory = cat;
+  // Render breadcrumb
+  const wrap = document.getElementById('cat-breadcrumb-wrap');
+  if(wrap){
+    wrap.innerHTML = `<div class="cat-breadcrumb" onclick="goToUpload()" title="Cambiar categoría">
+      <span class="cat-breadcrumb-icon">${cat.icon}</span>
+      <span>${cat.name}</span>
+      <span style="opacity:.5;margin-left:.3rem">✕</span>
+    </div>`;
+  }
   renderTopbar('upload-topnav');
   showScreen('screen-upload');
 }
-window.goToUpload = goToUpload;
 
 /* ══════ ANALYSIS ══════ */
 async function analyzeFiles(){
@@ -827,6 +939,8 @@ async function analyzeFiles(){
         height_cm:r.height_cm||null, pages:r.pages||null,
         version:r.version||null, created:r.created||null,
         verdict: r._verdict||null, bestMatch: r._bestMatch||null,
+        category: selectedCategory?.name||null,
+        categoryIcon: selectedCategory?.icon||null,
         analyzedAt: serverTimestamp()
       });
     }
@@ -862,6 +976,156 @@ function parsePDFMetadata(bytes,file){
 }
 
 function cleanStr(s){ return s.replace(/\\(\d{3})/g,(m,p)=>String.fromCharCode(parseInt(p,8))).replace(/[^\x20-\x7E]/g,'').trim().slice(0,80)||'Desconocido'; }
+
+/* ══════ CATEGORIES ══════ */
+const DEFAULT_CATEGORIES = [
+  { name:'Volantes',   icon:'📄', desc:'Hojas informativas de una cara', order:1 },
+  { name:'Afiches',    icon:'🖼️', desc:'Carteles y material publicitario', order:2 },
+  { name:'Revistas',   icon:'📖', desc:'Publicaciones multipágina', order:3 },
+  { name:'Adhesivos',  icon:'🏷️', desc:'Etiquetas y stickers', order:4 },
+  { name:'Talonarios', icon:'📋', desc:'Bloques con numeración correlativa', order:5 },
+];
+
+const EMOJI_OPTIONS = ['📄','🖼️','📖','🏷️','📋','📰','📦','🎨','🖨️','📑','📝','🗂️','📌','🔖','💳','🗒️','📬','🎫','📮','🖼'];
+
+async function loadCategories(){
+  try {
+    const snap = await getDocs(query(collection(fdb,'categories'), orderBy('order','asc')));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){ return []; }
+}
+
+async function seedDefaultCategories(){
+  // Only seed if collection is empty
+  const snap = await getDocs(collection(fdb,'categories'));
+  if(!snap.empty) return;
+  for(const cat of DEFAULT_CATEGORIES){
+    await addDoc(collection(fdb,'categories'), cat);
+  }
+}
+
+async function loadAndRenderCategories(){
+  const grid = document.getElementById('cat-grid');
+  if(!grid) return;
+  grid.innerHTML = `<div style="font-family:DM Mono,monospace;font-size:.75rem;color:var(--ash);padding:1rem;grid-column:1/-1">Cargando categorías…</div>`;
+
+  // Seed defaults if admin and empty
+  if(isAdmin()) await seedDefaultCategories();
+
+  const cats = await loadCategories();
+  grid.innerHTML = '';
+
+  cats.forEach((cat, i) => {
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.style.animationDelay = (i * .07) + 's';
+
+    const adminControls = isAdmin() ? `
+      <div class="cat-card-admin" onclick="event.stopPropagation()">
+        <button class="cat-admin-btn" title="Editar" onclick="window._editCat('${cat.id}')">✏️</button>
+        <button class="cat-admin-btn" title="Eliminar" onclick="window._deleteCat('${cat.id}')">🗑</button>
+      </div>` : '';
+
+    card.innerHTML = `
+      ${adminControls}
+      <div class="cat-card-icon">${cat.icon||'📄'}</div>
+      <div class="cat-card-name">${cat.name}</div>
+      <div class="cat-card-desc">${cat.desc||''}</div>
+      <div class="cat-card-arrow">→ Seleccionar</div>`;
+
+    card.addEventListener('click', () => goToUploadWithCategory(cat));
+    grid.appendChild(card);
+  });
+
+  // Add "Nueva categoría" card for admin
+  if(isAdmin()){
+    const addCard = document.createElement('div');
+    addCard.className = 'cat-card cat-card-add';
+    addCard.innerHTML = `
+      <div class="cat-card-icon">＋</div>
+      <div class="cat-card-name">Nueva categoría</div>`;
+    addCard.addEventListener('click', () => window._openCatModal());
+    grid.appendChild(addCard);
+  }
+}
+
+/* ── Category Modal ── */
+function buildCatModal(existing=null){
+  const selectedEmoji = existing?.icon || '📄';
+  const emojiButtons = EMOJI_OPTIONS.map(e =>
+    `<button class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="window._selectEmoji(this,'${e}')">${e}</button>`
+  ).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'cat-modal-overlay';
+  overlay.id = 'cat-modal-overlay';
+  overlay.innerHTML = `
+    <div class="cat-modal" onclick="event.stopPropagation()">
+      <p class="cat-modal-title">${existing ? 'Editar categoría' : 'Nueva categoría'}</p>
+      <input type="hidden" id="cat-modal-emoji" value="${selectedEmoji}">
+      <div class="form-group">
+        <label class="form-label">Ícono</label>
+        <div class="emoji-picker">${emojiButtons}</div>
+      </div>
+      <div class="form-group" style="margin-top:1rem">
+        <label class="form-label">Nombre</label>
+        <input class="form-input" id="cat-modal-name" type="text" value="${existing?.name||''}" placeholder="Ej: Tarjetas, Catálogos…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción breve</label>
+        <input class="form-input" id="cat-modal-desc" type="text" value="${existing?.desc||''}" placeholder="Ej: Material para punto de venta">
+      </div>
+      <div class="cat-modal-actions">
+        <button class="tpl-btn" onclick="window._closeCatModal()">Cancelar</button>
+        <button class="btn-save" onclick="window._saveCat('${existing?.id||''}')">Guardar</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', () => window._closeCatModal());
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('cat-modal-name')?.focus(),100);
+}
+
+window._selectEmoji = function(btn, emoji){
+  document.querySelectorAll('.emoji-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('cat-modal-emoji').value = emoji;
+};
+window._openCatModal  = () => buildCatModal();
+window._closeCatModal = () => document.getElementById('cat-modal-overlay')?.remove();
+
+window._editCat = async function(id){
+  const cats = await loadCategories();
+  const cat  = cats.find(c=>c.id===id);
+  if(cat) buildCatModal(cat);
+};
+
+window._saveCat = async function(editId){
+  if(!isAdmin()){ toast('Acción no permitida.'); return; }
+  const name  = document.getElementById('cat-modal-name').value.trim();
+  const icon  = document.getElementById('cat-modal-emoji').value;
+  const desc  = document.getElementById('cat-modal-desc').value.trim();
+  if(!name) return toast('El nombre de la categoría es obligatorio.');
+  const cats  = await loadCategories();
+  const order = editId ? (cats.find(c=>c.id===editId)?.order||99) : (cats.length + 1);
+  const data  = { name, icon, desc, order };
+  if(editId){
+    await setDoc(doc(fdb,'categories',editId), data, {merge:true});
+    toast('Categoría actualizada.','success');
+  } else {
+    await addDoc(collection(fdb,'categories'), data);
+    toast('Categoría creada.','success');
+  }
+  window._closeCatModal();
+  await loadAndRenderCategories();
+};
+
+window._deleteCat = async function(id){
+  if(!isAdmin()){ toast('Acción no permitida.'); return; }
+  if(!confirm('¿Eliminar esta categoría?')) return;
+  await deleteDoc(doc(fdb,'categories',id));
+  toast('Categoría eliminada.');
+  await loadAndRenderCategories();
+};
 
 /* ══════ TEMPLATES ══════ */
 async function goToTemplates(){
@@ -1018,7 +1282,9 @@ function showResults(){
   if(btnTpl) btnTpl.style.display = isAdmin() ? '' : 'none';
   const grid=document.getElementById('cards-grid'),sub=document.getElementById('results-sub'),sum=document.getElementById('summary-bar');
   const n=analysisResults.length;
-  sub.textContent=`${n} documento${n!==1?'s':''} analizados`;
+  sub.textContent = selectedCategory
+    ? `${selectedCategory.icon} ${selectedCategory.name} — ${n} documento${n!==1?'s':''} analizados`
+    : `${n} documento${n!==1?'s':''} analizados`;
   const totalKB=analysisResults.reduce((a,r)=>a+parseFloat(r.size||0),0).toFixed(1);
   const cmyk=analysisResults.filter(r=>r.colorProfile==='CMYK').length;
   const rgb =analysisResults.filter(r=>r.colorProfile==='RGB').length;
@@ -1229,7 +1495,7 @@ async function buildPanelArchivos(container){
         </div>
         <div style="overflow-x:auto">
           <table class="history-table">
-            <thead><tr><th>Archivo</th><th>Dimensiones</th><th>Software</th><th>Color</th><th>Peso</th><th>Analizado</th><th></th></tr></thead>
+            <thead><tr><th>Archivo</th><th>Categoría</th><th>Dimensiones</th><th>Color</th><th>Veredicto</th><th>Analizado</th><th></th></tr></thead>
             <tbody id="hist-body"></tbody>
           </table>
         </div>`}
@@ -1243,15 +1509,18 @@ function renderHistRows(files){
   tbody.innerHTML='';
   files.forEach(f=>{
     const dim=f.width_cm&&f.height_cm?`${f.width_cm}×${f.height_cm}cm`:'—';
+    const catStr = f.categoryIcon ? `${f.categoryIcon} ${f.category}` : (f.category||'—');
+    const verdictMap = {approved:'✅ Aprobado', rejected:'❌ Rechazado', partial:'⚠️ Parcial', 'no-tpl':'—'};
+    const verdictStr = verdictMap[f.verdict] || '—';
     const tr=document.createElement('tr');
     tr.dataset.name=(f.name||'').toLowerCase();
     tr.dataset.col=(f.colorProfile||'').toLowerCase();
     tr.innerHTML=`
       <td class="htd-name" title="${f.name}">📄 ${f.name.length>26?f.name.slice(0,24)+'…':f.name}</td>
+      <td style="font-size:.8rem">${catStr}</td>
       <td class="htd-mono">${dim}</td>
-      <td style="font-size:.8rem;max-width:130px">${(f.software||'—').slice(0,28)}</td>
       <td><span class="htd-badge ${(f.colorProfile||'').toLowerCase()}">${f.colorProfile||'—'}</span></td>
-      <td class="htd-mono">${f.size} KB</td>
+      <td style="font-size:.8rem">${verdictStr}</td>
       <td class="htd-mono">${fmtDate(f.analyzedAt)}</td>
       <td><button class="htd-action" onclick="window._delHistFile('${f.id}')" title="Eliminar">🗑</button></td>`;
     tbody.appendChild(tr);
