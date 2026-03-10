@@ -1339,16 +1339,24 @@ function compareWithTemplates(result, templates){
   if(!templates||!templates.length) return { verdict:'no-tpl', matches:[] };
   const matches = templates.map(t => {
     let score = 0; let total = 0; const details = [];
-    // Dimensiones
+    // Dimensiones (conmutativas: acepta orientación normal e invertida)
     if(t.width_cm && t.height_cm && result.width_cm && result.height_cm){
       total += 2;
-      const tol = t.tolerance != null ? parseFloat(t.tolerance) : 0.5;
-      const wOk = Math.abs(parseFloat(result.width_cm) - parseFloat(t.width_cm)) <= tol;
-      const hOk = Math.abs(parseFloat(result.height_cm) - parseFloat(t.height_cm)) <= tol;
-      if(wOk){ score++; details.push({ok:true, msg:`Ancho OK (${result.width_cm}cm)`}); }
-      else { details.push({ok:false, msg:`Ancho fuera (${result.width_cm} vs ${t.width_cm}cm ±${tol})`}); }
-      if(hOk){ score++; details.push({ok:true, msg:`Alto OK (${result.height_cm}cm)`}); }
-      else { details.push({ok:false, msg:`Alto fuera (${result.height_cm} vs ${t.height_cm}cm ±${tol})`}); }
+      const tol  = t.tolerance != null ? parseFloat(t.tolerance) : 0.5;
+      const rW   = parseFloat(result.width_cm);
+      const rH   = parseFloat(result.height_cm);
+      const tW   = parseFloat(t.width_cm);
+      const tH   = parseFloat(t.height_cm);
+      // Orientación normal (W↔W, H↔H) o invertida (W↔H, H↔W)
+      const normalOk  = Math.abs(rW-tW)<=tol && Math.abs(rH-tH)<=tol;
+      const flippedOk = Math.abs(rW-tH)<=tol && Math.abs(rH-tW)<=tol;
+      if(normalOk || flippedOk){
+        score += 2;
+        const tag = flippedOk && !normalOk ? ' (orientación invertida)' : '';
+        details.push({ok:true, msg:`Dimensiones OK — ${rW}×${rH}cm${tag}`});
+      } else {
+        details.push({ok:false, msg:`Dimensiones fuera — ${rW}×${rH}cm vs ${tW}×${tH}cm ±${tol}`});
+      }
     }
     // Color
     if(t.colorProfile && t.colorProfile !== 'cualquiera'){
